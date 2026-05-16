@@ -9,7 +9,7 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class AiClient:
-    DEFAULT_MODEL = "gemini-3.0-flash"
+    DEFAULT_MODEL = "gemini-3-flash-preview"
 
     AvaillableTTSVoices = Literal[
         "Puck", "Achernar", "Alnilam", "Autonoe", "Enceladus", "Rasalgethi",
