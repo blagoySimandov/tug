@@ -1,7 +1,7 @@
 from typing import Literal
 from pydantic import BaseModel
 
-MomentType = Literal["goal", "red_card"]
+MomentType = Literal["goal", "red_card", "yellow_card", "var_decision"]
 
 
 class ImportantMoment(BaseModel):

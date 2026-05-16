@@ -3,4 +3,7 @@ tug-fe/.react-router
 tug-fe/build
 test-data
 test.json
+tug-be/match_data
+tug-be/bsd_data.jsonl
 tug-be/test_transcription.py
+

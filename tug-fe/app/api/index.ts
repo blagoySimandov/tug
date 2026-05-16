@@ -1,4 +1,4 @@
-import type { ImportantMomentsResponse, MatchesResponse } from "./types";
+import type { ImportantMomentsResponse, MatchesResponse, EventsFilter, EventsResponse } from "./types";
 import { MOCK_MATCHES } from "./mock-data";
 
 // Flip to false when backend is ready
@@ -39,6 +39,12 @@ export class Api {
     const url = this.buildUrl(this.baseUrl, "/matches");
     const res = await fetch(url);
     return res.json() as Promise<MatchesResponse>;
+  }
+
+  public async getEvents(filter: EventsFilter = {}): Promise<EventsResponse> {
+    const url = this.buildUrl(this.baseUrl, "/events/", filter);
+    const res = await fetch(url);
+    return res.json() as Promise<EventsResponse>;
   }
 
   public async getLiveImportantMoments(

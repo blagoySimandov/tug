@@ -1,6 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "./context";
-import type { ImportantMomentsResponse, MatchesResponse } from "./types";
+import type { ImportantMomentsResponse, MatchesResponse, EventsFilter, EventsResponse } from "./types";
+
+export function useEvents(filter: EventsFilter = {}) {
+  const api = useApi();
+  return useQuery<EventsResponse>({
+    queryKey: ["events", filter],
+    queryFn: () => api.getEvents(filter),
+  });
+}
 
 export function useMatches() {
   const api = useApi();

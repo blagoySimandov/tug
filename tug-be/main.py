@@ -1,8 +1,12 @@
+
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from models import ImportantMoment, BatchMomentsRequest
-from mock import MOCK_MOMENTS
+
+from models import ImportantMoment
+from routes.events import router as events_router
+import bsd_past
+import moment_mapper
 
 load_dotenv()
 
@@ -20,12 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-def get_moments_for_video(
-    video_id: str, start: float, end: float
-) -> list[ImportantMoment]:
-    moments = MOCK_MOMENTS.get(video_id, [])
-    return [m for m in moments if start <= m.videoTimestamp <= end]
+app.include_router(events_router)
 
 
 @app.get("/")
@@ -49,20 +48,12 @@ def get_videos():
     ]
 
 
-@app.get("/{video_id}/important-moments", response_model=list[ImportantMoment])
-def get_important_moments(
-    video_id: str,
+@app.get("/{event_id}/important-moments", response_model=list[ImportantMoment])
+async def get_important_moments(
+    event_id: int,
     start: float = Query(0),
     end: float = Query(float("inf")),
 ):
-    if video_id not in MOCK_MOMENTS:
-        raise HTTPException(status_code=404, detail=f"Video '{video_id}' not found")
-    return get_moments_for_video(video_id, start, end)
-
-
-@app.post("/important-moments/batch", response_model=dict[str, list[ImportantMoment]])
-def get_important_moments_batch(body: BatchMomentsRequest):
-    result: dict[str, list[ImportantMoment]] = {}
-    for q in body.queries:
-        result[q.videoId] = get_moments_for_video(q.videoId, q.start, q.end)
-    return result
+    incidents = await bsd_past.get_incidents(event_id)
+    moments = moment_mapper.incidents_to_moments(event_id, incidents)
+    return [m for m in moments if start <= m.videoTimestamp <= end]
