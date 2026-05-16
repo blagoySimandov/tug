@@ -1,4 +1,4 @@
-import { Crosshair, Square } from "lucide-react";
+import { Crosshair, Square, Video } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
 import { cn } from "~/lib/utils";
 
@@ -45,5 +45,23 @@ export const RedCardChip = ({ videoTimestamp }: { videoTimestamp: number }) => (
     label="Red Card"
     videoTimestamp={videoTimestamp}
     className="border-red-500/25 bg-red-950/80 text-red-100 shadow-[0_0_16px_rgba(239,68,68,0.12)]"
+  />
+);
+
+export const YellowCardChip = ({ videoTimestamp }: { videoTimestamp: number }) => (
+  <BaseChip
+    icon={<Square fill="currentColor" strokeWidth={0} />}
+    label="Yellow"
+    videoTimestamp={videoTimestamp}
+    className="border-yellow-400/25 bg-yellow-950/80 text-yellow-100 shadow-[0_0_16px_rgba(234,179,8,0.12)]"
+  />
+);
+
+export const VarDecisionChip = ({ videoTimestamp }: { videoTimestamp: number }) => (
+  <BaseChip
+    icon={<Video strokeWidth={2.5} />}
+    label="VAR"
+    videoTimestamp={videoTimestamp}
+    className="border-blue-400/25 bg-blue-950/80 text-blue-100 shadow-[0_0_16px_rgba(96,165,250,0.12)]"
   />
 );

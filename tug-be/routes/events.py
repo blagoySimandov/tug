@@ -1,11 +1,15 @@
+from dataclasses import dataclass
+from enum import IntEnum
+
 from fastapi import APIRouter
+
 import bsd_past
 from models import (
     BsdEvent,
-    EventsListResponse,
     EventLineups,
     EventMetadata,
     EventStats,
+    EventsListResponse,
     Incident,
     MatchSnapshot,
     PlayerStat,
@@ -13,78 +17,92 @@ from models import (
 
 router = APIRouter(prefix="/events", tags=["events"])
 
-_HARDCODED_EVENTS: list[BsdEvent] = [
-    BsdEvent(
-        id=1,
-        league_id=7,
-        league_name="UEFA Champions League",
+
+class Match(IntEnum):
+    BAYERN_VS_REAL_MADRID = 7716
+    PSG_VS_CHELSEA = 7586
+    ATALANTA_VS_BAYERN = 7583
+    GALATASARAY_VS_LIVERPOOL = 7580
+    JUVENTUS_VS_GALATASARAY = 7387
+
+
+@dataclass
+class MatchConfig:
+    home_team: str
+    away_team: str
+    event_date: str
+    video_url: str
+    kickoff_offset: float  # seconds into video when kickoff occurs
+
+
+# ── Configure matches here ───────────────────────────────────────────────────
+MATCHES: dict[Match, MatchConfig] = {
+    Match.BAYERN_VS_REAL_MADRID: MatchConfig(
         home_team="Bayern Munich",
         away_team="Real Madrid",
         event_date="2026-04-15",
-        status="finished",
-        home_score=None,
-        away_score=None,
-        video_filename="https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/2025-26_Bayern_Vs_Real_Madrid_-_15042026-1_edit.mp4?alt=media&token=43bc1090-5431-431a-bbaa-bea89f08c34f",
-        kickoff_time=None,  # TODO: set kickoff time e.g. "20:45"
+        video_url="https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/2025-26_Bayern_Vs_Real_Madrid_-_15042026-1_edit.mp4?alt=media&token=43bc1090-5431-431a-bbaa-bea89f08c34f",
+        kickoff_offset=0,
     ),
-    BsdEvent(
-        id=2,
-        league_id=7,
-        league_name="UEFA Champions League",
+    Match.PSG_VS_CHELSEA: MatchConfig(
         home_team="Paris Saint-Germain",
         away_team="Chelsea",
         event_date="2026-03-11",
-        status="finished",
-        home_score=None,
-        away_score=None,
-        video_filename="https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/2025-26_Paris_Saint-Germain_Vs_Chelsea_-_11032026-1.mp4?alt=media&token=1b91a829-1ded-4599-95d9-925d0611003f",
-        kickoff_time=None,  # TODO: set kickoff time e.g. "20:45"
+        video_url="https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/2025-26_Paris_Saint-Germain_Vs_Chelsea_-_11032026-1.mp4?alt=media&token=1b91a829-1ded-4599-95d9-925d0611003f",
+        kickoff_offset=0,
     ),
-    BsdEvent(
-        id=3,
-        league_id=7,
-        league_name="UEFA Champions League",
+    Match.ATALANTA_VS_BAYERN: MatchConfig(
         home_team="Atalanta",
         away_team="Bayern Munich",
         event_date="2026-03-10",
-        status="finished",
-        home_score=None,
-        away_score=None,
-        video_filename="https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/2025-26_Atalanta_Vs_Bayern_Munich_-_10032026-1_edit.mp4?alt=media&token=8aa301de-5a22-445b-861c-9d130f4be1a9",
-        kickoff_time=None,  # TODO: set kickoff time e.g. "20:45"
+        video_url="https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/2025-26_Atalanta_Vs_Bayern_Munich_-_10032026-1_edit.mp4?alt=media&token=8aa301de-5a22-445b-861c-9d130f4be1a9",
+        kickoff_offset=0,
     ),
-    BsdEvent(
-        id=4,
-        league_id=7,
-        league_name="UEFA Champions League",
+    Match.GALATASARAY_VS_LIVERPOOL: MatchConfig(
         home_team="Galatasaray",
         away_team="Liverpool",
         event_date="2026-03-10",
-        status="finished",
-        home_score=None,
-        away_score=None,
-        video_filename="https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/2025-26_Galatasaray_Vs_Liverpool_-_10032026-1.mp4?alt=media&token=a2852566-7ff8-4adb-a933-ec81831bb6eb",
-        kickoff_time=None,  # TODO: set kickoff time e.g. "20:45"
+        video_url="https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/2025-26_Galatasaray_Vs_Liverpool_-_10032026-1.mp4?alt=media&token=a2852566-7ff8-4adb-a933-ec81831bb6eb",
+        kickoff_offset=0,
     ),
-    BsdEvent(
-        id=5,
-        league_id=7,
-        league_name="UEFA Champions League",
+    Match.JUVENTUS_VS_GALATASARAY: MatchConfig(
         home_team="Juventus",
         away_team="Galatasaray",
         event_date="2026-02-25",
-        status="finished",
-        home_score=None,
-        away_score=None,
-        video_filename="https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/2025-26_Juventus_Vs_Galatasaray_-_25022026-1_edit_-_1.mp4?alt=media&token=054df9f1-d8c0-4e38-97ce-22c442db6996",
-        kickoff_time=None,  # TODO: set kickoff time e.g. "20:45"
+        video_url="https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/2025-26_Juventus_Vs_Galatasaray_-_25022026-1_edit_-_1.mp4?alt=media&token=054df9f1-d8c0-4e38-97ce-22c442db6996",
+        kickoff_offset=0,
     ),
-]
+}
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+def get_kickoff_offset(bsd_event_id: int) -> float:
+    try:
+        return MATCHES[Match(bsd_event_id)].kickoff_offset
+    except ValueError:
+        return 0
+
+
+def _to_bsd_event(match: Match, cfg: MatchConfig) -> BsdEvent:
+    return BsdEvent(
+        id=int(match),
+        league_id=7,
+        league_name="UEFA Champions League",
+        home_team=cfg.home_team,
+        away_team=cfg.away_team,
+        event_date=cfg.event_date,
+        status="finished",
+        video_filename=cfg.video_url,
+        kickoff_offset=cfg.kickoff_offset,
+    )
+
+
+_EVENTS = [_to_bsd_event(m, cfg) for m, cfg in MATCHES.items()]
 
 
 @router.get("/", response_model=EventsListResponse)
 async def list_events():
-    return EventsListResponse(count=len(_HARDCODED_EVENTS), results=_HARDCODED_EVENTS)
+    return EventsListResponse(count=len(_EVENTS), results=_EVENTS)
 
 
 @router.get("/{event_id}", response_model=BsdEvent)

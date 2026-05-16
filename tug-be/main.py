@@ -3,7 +3,7 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from models import ImportantMoment
-from routes.events import router as events_router
+from routes.events import router as events_router, get_kickoff_offset
 import bsd_past
 import moment_mapper
 
@@ -38,5 +38,6 @@ async def get_important_moments(
     end: float = Query(float("inf")),
 ):
     incidents = await bsd_past.get_incidents(event_id)
-    moments = moment_mapper.incidents_to_moments(event_id, incidents)
+    kickoff_offset = get_kickoff_offset(event_id)
+    moments = moment_mapper.incidents_to_moments(event_id, incidents, kickoff_offset)
     return [m for m in moments if start <= m.videoTimestamp <= end]

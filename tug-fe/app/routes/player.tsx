@@ -21,6 +21,13 @@ export default function Player() {
   const primaryMatch = matches.find((m) => m.id === primaryId);
   const secondaryMatch = matches.find((m) => m.id === secondaryId);
 
+  const storePrimaryId = useVideoStore((s) => s.primaryVideoId);
+  const storeSecondaryId = useVideoStore((s) => s.secondaryVideoId);
+  const setPrimaryVideoId = useVideoStore((s) => s.setPrimaryVideoId);
+  const setSecondaryVideoId = useVideoStore((s) => s.setSecondaryVideoId);
+  if (primaryId && storePrimaryId !== primaryId) setPrimaryVideoId(primaryId);
+  if (secondaryId && storeSecondaryId !== secondaryId) setSecondaryVideoId(secondaryId);
+
   if (isLoading) {
     return (
       <div className="flex h-svh items-center justify-center text-muted-foreground">

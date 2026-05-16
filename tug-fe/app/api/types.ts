@@ -35,7 +35,7 @@ export type BsdEvent = {
   home_score: number;
   away_score: number;
   video_filename: string | null;
-  kickoff_time: string | null;
+  kickoff_offset: number | null;
 };
 
 export type EventsResponse = {

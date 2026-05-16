@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useVideoStore, type LayoutMode } from "~/store/video";
 import { PlayerSlot } from "./player-slot";
 
@@ -40,10 +41,6 @@ function computeLayout(
 function DualVideoLayout({ primaryUrl, secondaryUrl }: { primaryUrl: string; secondaryUrl: string }) {
   const primaryVideoId = useVideoStore((s) => s.primaryVideoId);
   const secondaryVideoId = useVideoStore((s) => s.secondaryVideoId);
-  const primaryPlaying = useVideoStore((s) => s.primaryPlaying);
-  const secondaryPlaying = useVideoStore((s) => s.secondaryPlaying);
-  const setPrimaryPlaying = useVideoStore((s) => s.setPrimaryPlaying);
-  const setSecondaryPlaying = useVideoStore((s) => s.setSecondaryPlaying);
   const setPrimaryTimestamp = useVideoStore((s) => s.setPrimaryTimestamp);
   const setSecondaryTimestamp = useVideoStore((s) => s.setSecondaryTimestamp);
   const flashingVideoId = useVideoStore((s) => s.flashingVideoId);
@@ -51,6 +48,16 @@ function DualVideoLayout({ primaryUrl, secondaryUrl }: { primaryUrl: string; sec
   const primaryPriorityUntil = useVideoStore((s) => s.primaryPriorityUntil);
   const secondaryPriorityUntil = useVideoStore((s) => s.secondaryPriorityUntil);
   const manualLayoutMode = useVideoStore((s) => s.manualLayoutMode);
+  const setPrimarySeeker = useVideoStore((s) => s.setPrimarySeeker);
+  const setSecondarySeeker = useVideoStore((s) => s.setSecondarySeeker);
+
+  const primaryRef = useCallback((el: HTMLVideoElement | null) => {
+    if (el) setPrimarySeeker((s) => { el.currentTime = s; el.play(); });
+  }, [setPrimarySeeker]);
+
+  const secondaryRef = useCallback((el: HTMLVideoElement | null) => {
+    if (el) setSecondarySeeker((s) => { el.currentTime = s; el.play(); });
+  }, [setSecondarySeeker]);
 
   const { mode, isSwapped } = computeLayout(primaryPriorityUntil, secondaryPriorityUntil, manualLayoutMode);
   const transition = "transition-all duration-500 ease-in-out";
@@ -70,22 +77,18 @@ function DualVideoLayout({ primaryUrl, secondaryUrl }: { primaryUrl: string; sec
     <div className="relative h-full w-full">
       <div className={primaryContainerClass}>
         <PlayerSlot
+          ref={primaryRef}
           url={primaryUrl}
           className="h-full w-full"
-          playing={primaryPlaying}
-          onPlay={() => setPrimaryPlaying(true)}
-          onPause={() => setPrimaryPlaying(false)}
           onProgress={handlePrimaryProgress}
         />
         {flashingVideoId === primaryVideoId && <FlashOverlay key={flashCount} />}
       </div>
       <div className={secondaryContainerClass}>
         <PlayerSlot
+          ref={secondaryRef}
           url={secondaryUrl}
           className="h-full w-full"
-          playing={secondaryPlaying}
-          onPlay={() => setSecondaryPlaying(true)}
-          onPause={() => setSecondaryPlaying(false)}
           onProgress={setSecondaryTimestamp}
         />
         {flashingVideoId === secondaryVideoId && <FlashOverlay key={flashCount} />}

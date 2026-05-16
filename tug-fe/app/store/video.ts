@@ -15,11 +15,16 @@ interface VideoState {
   secondaryPriorityUntil: number;
   flashingVideoId: string | null;
   flashCount: number;
+  primarySeeker: ((seconds: number) => void) | null;
+  secondarySeeker: ((seconds: number) => void) | null;
 }
 
 interface VideoActions {
   setPrimaryVideoId: (id: string) => void;
   setSecondaryVideoId: (id: string) => void;
+  setPrimarySeeker: (fn: (seconds: number) => void) => void;
+  setSecondarySeeker: (fn: (seconds: number) => void) => void;
+  seekVideo: (videoId: string, seconds: number) => void;
   setPrimaryPlaying: (playing: boolean) => void;
   setSecondaryPlaying: (playing: boolean) => void;
   setPrimaryTimestamp: (timestamp: number) => void;
@@ -31,7 +36,7 @@ interface VideoActions {
   setFlashingVideoId: (id: string | null) => void;
 }
 
-export const useVideoStore = create<VideoState & VideoActions>((set) => ({
+export const useVideoStore = create<VideoState & VideoActions>((set, get) => ({
   primaryVideoId: "arg_fr",
   secondaryVideoId: "cr_bra",
   primaryPlaying: false,
@@ -44,9 +49,18 @@ export const useVideoStore = create<VideoState & VideoActions>((set) => ({
   secondaryPriorityUntil: 0,
   flashingVideoId: null,
   flashCount: 0,
+  primarySeeker: null,
+  secondarySeeker: null,
 
   setPrimaryVideoId: (id) => set({ primaryVideoId: id }),
   setSecondaryVideoId: (id) => set({ secondaryVideoId: id }),
+  setPrimarySeeker: (fn) => set({ primarySeeker: fn }),
+  setSecondarySeeker: (fn) => set({ secondarySeeker: fn }),
+  seekVideo: (videoId, seconds) => {
+    const { primaryVideoId, secondaryVideoId, primarySeeker, secondarySeeker } = get();
+    if (videoId === primaryVideoId) primarySeeker?.(seconds);
+    else if (videoId === secondaryVideoId) secondarySeeker?.(seconds);
+  },
   setPrimaryPlaying: (playing) => set({ primaryPlaying: playing }),
   setSecondaryPlaying: (playing) => set({ secondaryPlaying: playing }),
   setPrimaryTimestamp: (timestamp) => set({ primaryTimestamp: timestamp }),

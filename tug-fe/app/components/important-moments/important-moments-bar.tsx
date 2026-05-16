@@ -1,11 +1,13 @@
 import { useEffect, useRef } from "react";
 import { useLiveImportantMoments } from "~/api/hooks";
 import { useVideoStore } from "~/store/video";
-import { GoalChip, RedCardChip } from "./impnt-chips";
+import { GoalChip, RedCardChip, YellowCardChip, VarDecisionChip } from "./impnt-chips";
 
 const CHIP_MAP = {
   goal: GoalChip,
   red_card: RedCardChip,
+  yellow_card: YellowCardChip,
+  var_decision: VarDecisionChip,
 } as const;
 
 export const ImportantMomentsBar = () => {
@@ -17,6 +19,7 @@ export const ImportantMomentsBar = () => {
   const setFlashingVideoId = useVideoStore((s) => s.setFlashingVideoId);
   const setPriorityUntil = useVideoStore((s) => s.setPriorityUntil);
   const clearPriority = useVideoStore((s) => s.clearPriority);
+  const seekVideo = useVideoStore((s) => s.seekVideo);
 
   const { data: primaryData } = useLiveImportantMoments(primaryVideoId, 0, 999999);
   const { data: secondaryData } = useLiveImportantMoments(secondaryVideoId, 0, 999999);
@@ -49,7 +52,11 @@ export const ImportantMomentsBar = () => {
     <div className="flex gap-2 items-center">
       {visible.map((m) => {
         const Chip = CHIP_MAP[m.type];
-        return <Chip key={`${m.videoId}:${m.videoTimestamp}`} videoTimestamp={m.videoTimestamp} />;
+        return (
+          <button key={`${m.videoId}:${m.videoTimestamp}`} onClick={() => seekVideo(m.videoId, m.videoTimestamp)} className="cursor-pointer transition-opacity hover:opacity-75">
+            <Chip videoTimestamp={m.videoTimestamp} />
+          </button>
+        );
       })}
     </div>
   );

@@ -36,7 +36,7 @@ class BsdEvent(BaseModel):
     home_score: int | None = None
     away_score: int | None = None
     video_filename: str | None = None
-    kickoff_time: str | None = None  # e.g. "20:45" UTC — used to derive match clock from stream position
+    kickoff_offset: float | None = None  # seconds into video when match kickoff occurs
 
 
 class EventsListResponse(BaseModel):
