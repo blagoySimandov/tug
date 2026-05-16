@@ -1,6 +1,8 @@
+from pydantic import BaseModel
+
 from ai.client import AiClient
-from ai.stt.stt_client import STTClient
 from ai.stt.models import TranscriptSegment
+from ai.stt.stt_client import STTClient
 from models import ImportantMoment
 
 
@@ -22,13 +24,6 @@ Only include moments you are confident about based on the commentary. If no mome
 
 Transcript:
 {transcript_text}"""
-
-
-class _ImportantMomentList(list):
-    pass
-
-
-from pydantic import BaseModel
 
 
 class _ImportantMomentResponse(BaseModel):
