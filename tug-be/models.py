@@ -46,10 +46,10 @@ class EventsListResponse(BaseModel):
 
 class Incident(BaseModel):
     model_config = _extra
-    incidentType: str
-    time: int
-    addedTime: int | None = None
-    isHome: bool | None = None
+    type: str
+    minute: int
+    added_time: int | None = None
+    is_home: bool | None = None
 
 
 class StatItem(BaseModel):
