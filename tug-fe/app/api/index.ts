@@ -4,7 +4,7 @@ import { getMockMoments } from "./mock-data";
 // Flip to false when backend is ready
 const USE_MOCK = true;
 
-class Api {
+export class Api {
   baseUrl: string;
   constructor() {
     this.baseUrl = "https://tug-splitball.web.app/api"; //TODO: Change to live
