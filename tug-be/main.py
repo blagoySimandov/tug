@@ -3,6 +3,8 @@ from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from models import ImportantMoment, BatchMomentsRequest
 from routes.events import router as events_router, get_kickoff_offset
+from routes.narrate import router as narrate_router
+from ai.stt.stt_gem_wrap import transcribe_and_analyze
 from mock import MOCK_MOMENTS
 import bsd_past
 import moment_mapper
@@ -24,6 +26,7 @@ app.add_middleware(
 )
 
 app.include_router(events_router)
+app.include_router(narrate_router)
 
 @app.get("/")
 def read_root():
@@ -65,13 +68,4 @@ async def get_important_moments(
             raise HTTPException(status_code=404, detail=f"Video '{video_id}' not found")
     else:
         moments = await transcribe_and_analyze(video_id, VIDEO_URLS[video_id])
-
-    return [m for m in moments if start <= m.videoTimestamp <= end]
-
-@app.post("/important-moments/batch", response_model=dict[str, list[ImportantMoment]])
-async def get_important_moments_batch(body: BatchMomentsRequest):
-    result: dict[str, list[ImportantMoment]] = {}
-    for q in body.queries:
-        moments = await get_important_moments(q.videoId, q.start, q.end)
-        result[q.videoId] = moments
-    return result
+    return [m for m in moments if start <= m.videoTimestamp

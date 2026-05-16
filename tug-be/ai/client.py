@@ -7,26 +7,40 @@ from os import environ
 T = TypeVar("T", bound=BaseModel)
 
 
-
 class AiClient:
     DEFAULT_MODEL = "gemini-3-flash-preview"
+    DEFAULT_TTS_MODEL = "gemini-2.5-flash-preview-tts"
 
     AvaillableTTSVoices = Literal[
-        "Puck", "Achernar", "Alnilam", "Autonoe", "Enceladus", "Rasalgethi",
-        "Sadachbia", "Schedar", "Umbriel", "Zubenelgenubi", # Male-leaning
-        "Achird", "Algenib", "Callirrhoe", "Despina", "Pulcherrima",
-        "Sulafat", "Vindemiatrix", "Zephyr" # Female-leaning
+        "Puck",
+        "Achernar",
+        "Alnilam",
+        "Autonoe",
+        "Enceladus",
+        "Rasalgethi",
+        "Sadachbia",
+        "Schedar",
+        "Umbriel",
+        "Zubenelgenubi",  # Male-leaning
+        "Achird",
+        "Algenib",
+        "Callirrhoe",
+        "Despina",
+        "Pulcherrima",
+        "Sulafat",
+        "Vindemiatrix",
+        "Zephyr",  # Female-leaning
     ]
 
     def __init__(self):
         self.client = genai.Client(api_key=environ["GEMINI_TUG_API_KEY"])
 
-    def generate_content(self, prompt: str, model: str = DEFAULT_MODEL) -> str | None:
+    def generate_content(self, prompt: str, model: str = DEFAULT_MODEL, temperature: float = 0) -> str | None:
         response = self.client.models.generate_content(
             model=model,
             contents=prompt,
             config={
-                "temperature": 0,
+                "temperature": temperature,
                 "top_p": 0.95,
                 "top_k": 20,
             },
@@ -61,7 +75,10 @@ class AiClient:
         return cast(T, response.parsed)
 
     def generate_speech(
-        self, prompt: str, voice_name: AvaillableTTSVoices  = "Puck", model: str = DEFAULT_MODEL
+        self,
+        prompt: str,
+        voice_name: AvaillableTTSVoices = "Puck",
+        model: str = DEFAULT_TTS_MODEL,
     ) -> bytes | None:
         """Generates speech (TTS) from a prompt and returns the audio bytes."""
 
@@ -94,4 +111,3 @@ class AiClient:
                 return part.inline_data.data
 
         return None
-

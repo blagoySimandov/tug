@@ -8,13 +8,12 @@ from models import ImportantMoment
 
 def _build_prompt(video_id: str, segments: list[TranscriptSegment]) -> str:
     transcript_text = "\n".join(
-        f"[{s.start:.1f}s -> {s.end:.1f}s] {s.text.strip()}"
-        for s in segments
+        f"[{s.start:.1f}s -> {s.end:.1f}s] {s.text.strip()}" for s in segments
     )
     return f"""You are a sports broadcast analyst. Below is a timestamped transcript of commentary from a football (soccer) match video with id "{video_id}".
 
-Identify all important moments: goals and red cards. For each moment return:
-- type: either "goal" or "red_card"
+Identify all important moments: goal, red_card, yellow_card, var_decision, substitution (in this order of importance). For each moment return:
+- type: either "goal", "red_card", "yellow_card", "var_decision", "substitution"
 - videoId: "{video_id}"
 - videoTimestamp: the start time in seconds of the moment from the transcript
 - importanceScore: a float between 0.0 and 1.0 reflecting how significant this moment is
