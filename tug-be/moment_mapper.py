@@ -16,27 +16,34 @@ def _classify(incident: dict) -> MomentType | None:
     if t == "goal":
         return "goal"
     if t == "card":
-        return "red_card" if incident.get("card_type") == "red" else "yellow_card"
+        card_type = incident.get("card_type", "")
+        if card_type in ("red", "yellowRed"):
+            return "red_card"
+        return "yellow_card"
     if t == "varDecision":
         return "var_decision"
-    # substitution, period, injuryTime — not important enough for UI priority
     return None
 
 
-def incidents_to_moments(event_id: int, incidents: list[dict]) -> list[ImportantMoment]:
+def incidents_to_moments(
+    event_id: int, incidents: list[dict], kickoff_offset: float = 0
+) -> list[ImportantMoment]:
     moments = []
     for inc in incidents:
+        minute = inc.get("minute", 0) or 0
+        if minute < 0:
+            continue
         kind = _classify(inc)
         if kind is None:
             continue
         score, duration = _SCORING[kind]
-        minute = inc.get("minute", 0) or 0
         added = inc.get("added_time") or 0
+        video_ts = kickoff_offset + (minute + added) * 60
         moments.append(
             ImportantMoment(
                 type=kind,
                 videoId=str(event_id),
-                videoTimestamp=(minute + added) * 60,
+                videoTimestamp=video_ts,
                 importanceScore=score,
                 priorityDuration=duration,
             )

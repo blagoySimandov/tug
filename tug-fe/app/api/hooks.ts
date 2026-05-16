@@ -27,5 +27,6 @@ export function useLiveImportantMoments(
   return useQuery<ImportantMomentsResponse>({
     queryKey: ["importantMoments", videoId, timestampStart, timestampEnd],
     queryFn: () => api.getLiveImportantMoments(videoId, timestampStart, timestampEnd),
+    enabled: !!videoId,
   });
 }

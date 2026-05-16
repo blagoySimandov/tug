@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useMatches } from "~/api/hooks";
 import type { Match } from "~/api/types";
 import { VideoThumbnail } from "~/components/video-thumbnail";
+import { useVideoStore } from "~/store/video";
 
 function TeamRow({ team }: { team: { name: string; flag: string } }) {
   return (
@@ -47,6 +48,8 @@ export default function Home() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   const { data: matches = [], isLoading } = useMatches();
+  const setPrimaryVideoId = useVideoStore((s) => s.setPrimaryVideoId);
+  const setSecondaryVideoId = useVideoStore((s) => s.setSecondaryVideoId);
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -59,6 +62,8 @@ export default function Home() {
 
   function handleWatch() {
     const ids = Array.from(selected);
+    setPrimaryVideoId(ids[0]);
+    if (ids[1]) setSecondaryVideoId(ids[1]);
     const params = new URLSearchParams();
     params.set("primary", ids[0]);
     if (ids[1]) params.set("secondary", ids[1]);

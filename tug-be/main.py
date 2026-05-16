@@ -2,9 +2,8 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from models import ImportantMoment, BatchMomentsRequest
-from routes.events import router as events_router
+from routes.events import router as events_router, get_kickoff_offset
 from mock import MOCK_MOMENTS
-from ai.stt.stt_gem_wrap import transcribe_and_analyze
 import bsd_past
 import moment_mapper
 
@@ -57,11 +56,11 @@ async def get_important_moments(
     end: float = Query(float("inf")),
 ):
     if video_id not in VIDEO_URLS:
-        # Fall back to BSD event lookup if not a known video key
         try:
             event_id = int(video_id)
             incidents = await bsd_past.get_incidents(event_id)
-            moments = moment_mapper.incidents_to_moments(event_id, incidents)
+            kickoff_offset = get_kickoff_offset(event_id)
+            moments = moment_mapper.incidents_to_moments(event_id, incidents, kickoff_offset)
         except (ValueError, Exception):
             raise HTTPException(status_code=404, detail=f"Video '{video_id}' not found")
     else:
