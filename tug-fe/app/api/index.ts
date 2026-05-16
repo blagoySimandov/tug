@@ -1,3 +1,9 @@
+import type { ImportantMomentsResponse } from "./types";
+import { getMockMoments } from "./mock-data";
+
+// Flip to false when backend is ready
+const USE_MOCK = true;
+
 class Api {
   baseUrl: string;
   constructor() {
@@ -35,15 +41,21 @@ class Api {
    * @param videoId The ID of the video to get segments for.
    * @returns The segments for the video.
    */
-  public getLiveImportantMoments(
+  public async getLiveImportantMoments(
     videoId: string,
     timestampStart: number,
     timestampEnd: number,
-  ): Promise<Response> {
+  ): Promise<ImportantMomentsResponse> {
+    if (USE_MOCK) {
+      return getMockMoments(videoId, timestampStart, timestampEnd);
+    }
     const url = this.buildUrl(this.baseUrl, `/${videoId}/important-moments`, {
       start: timestampStart,
       end: timestampEnd,
     });
-    return fetch(url);
+    const res = await fetch(url);
+    return res.json() as Promise<ImportantMomentsResponse>;
   }
 }
+
+export const api = new Api();
