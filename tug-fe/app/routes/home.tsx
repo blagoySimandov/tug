@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { AutoSwitch } from "~/components/autoswitch";
+import { ImportantMomentsBar } from "~/components/important-moments";
 import { VideoLayout, type LayoutMode } from "~/components/video-layout";
 
 const MODES: { label: string; value: LayoutMode }[] = [
@@ -22,6 +23,9 @@ export default function Home() {
         <span className="text-sm font-semibold tracking-wide text-primary">
           TUG
         </span>
+        <div className="flex gap-1 items-center">
+          <ImportantMomentsBar />
+        </div>
         <div className="flex gap-1">
           <AutoSwitch />
           {MODES.map(({ label, value }) => (
