@@ -101,9 +101,9 @@ export default function DesignSystem() {
 
         <Section title="Important Moment Chips">
           <div className="flex flex-wrap items-center gap-3 rounded-lg bg-zinc-900 p-6">
-            <GoalChip matchMinute={23} />
-            <RedCardChip matchMinute={67} />
-            <GoalChip matchMinute={90} />
+            <GoalChip videoTimestamp={1380} />
+            <RedCardChip videoTimestamp={4020} />
+            <GoalChip videoTimestamp={5400} />
           </div>
         </Section>
       </div>

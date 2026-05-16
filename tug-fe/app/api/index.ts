@@ -17,19 +17,12 @@ export class Api {
    * @param params The query parameters to append to the URL.
    * @returns The built URL.
    */
-  private buildUrl(
-    base: string,
-    path: string = "",
-    params?: Record<string, any>,
-  ): string {
+  private buildUrl(base: string, path: string = "", params?: Record<string, any>): string {
     let url = base.replace(/\/+$/, "") + "/" + path.replace(/^\/+/, "");
     if (params && Object.keys(params).length > 0) {
       const query = Object.entries(params)
         .filter(([_, v]) => v !== undefined && v !== null)
-        .map(
-          ([k, v]) =>
-            `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`,
-        )
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`)
         .join("&");
       url += `?${query}`;
     }
