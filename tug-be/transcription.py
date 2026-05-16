@@ -6,7 +6,14 @@ from fastapi import HTTPException
 from openai import OpenAI
 
 
-async def transcribe_video_url(url: str) -> str:
+class TranscriptSegment:
+    def __init__(self, start: float, end: float, text: str):
+        self.start = start
+        self.end = end
+        self.text = text
+
+
+async def transcribe_video_url(url: str) -> list[TranscriptSegment]:
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     async with httpx.AsyncClient(timeout=120) as http:
@@ -25,10 +32,14 @@ async def transcribe_video_url(url: str) -> str:
             transcript = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=audio_file,
+                response_format="verbose_json",
             )
     finally:
         os.remove(tmp_path)
         if os.path.exists(mp3_path):
             os.remove(mp3_path)
 
-    return transcript.text
+    return [
+        TranscriptSegment(start=s.start, end=s.end, text=s.text)
+        for s in transcript.segments
+    ]
