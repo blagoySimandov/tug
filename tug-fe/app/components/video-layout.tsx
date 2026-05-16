@@ -1,39 +1,54 @@
-import { PlayerSlot } from "./player-slot"
+import { useState } from "react";
+import { PlayerSlot } from "./player-slot";
 
-export type LayoutMode = "fullscreen" | "split" | "pip"
+export type LayoutMode = "fullscreen" | "split" | "pip";
 
 interface VideoLayoutProps {
-  mode: LayoutMode
-  primaryUrl: string
-  secondaryUrl: string
+  mode: LayoutMode;
+  primaryUrl: string;
+  secondaryUrl: string;
 }
 
-function FullscreenLayout({ primaryUrl }: { primaryUrl: string }) {
-  return <PlayerSlot url={primaryUrl} className="h-full w-full" />
-}
+const primaryClasses: Record<LayoutMode, string> = {
+  fullscreen: "absolute inset-0",
+  split: "absolute inset-y-0 left-0 right-[calc(50%+4px)]",
+  pip: "absolute inset-0",
+};
 
-function SplitLayout({ primaryUrl, secondaryUrl }: { primaryUrl: string; secondaryUrl: string }) {
-  return (
-    <div className="grid h-full w-full grid-cols-2 gap-2">
-      <PlayerSlot url={primaryUrl} className="h-full" />
-      <PlayerSlot url={secondaryUrl} className="h-full" />
-    </div>
-  )
-}
+const secondaryClasses: Record<LayoutMode, string> = {
+  fullscreen: "absolute w-0 h-0 overflow-hidden opacity-0 pointer-events-none",
+  split: "absolute inset-y-0 left-[calc(50%+4px)] right-0",
+  pip: "absolute bottom-4 right-4 z-10 w-64 aspect-video shadow-xl ring-1 ring-border rounded-lg overflow-hidden",
+};
 
-function PipLayout({ primaryUrl, secondaryUrl }: { primaryUrl: string; secondaryUrl: string }) {
+export function VideoLayout({
+  mode,
+  primaryUrl,
+  secondaryUrl,
+}: VideoLayoutProps) {
+  const [primaryPlaying, setPrimaryPlaying] = useState(false);
+  const [secondaryPlaying, setSecondaryPlaying] = useState(false);
+
   return (
     <div className="relative h-full w-full">
-      <PlayerSlot url={primaryUrl} className="h-full w-full" />
-      <div className="absolute bottom-4 right-4 w-64 shadow-xl ring-1 ring-border">
-        <PlayerSlot url={secondaryUrl} className="aspect-video w-full rounded-md" />
+      <div className={primaryClasses[mode]}>
+        <PlayerSlot
+          url={primaryUrl}
+          className="h-full w-full"
+          playing={primaryPlaying}
+          onPlay={() => setPrimaryPlaying(true)}
+          onPause={() => setPrimaryPlaying(false)}
+        />
+      </div>
+      <div className={secondaryClasses[mode]}>
+        <PlayerSlot
+          url={secondaryUrl}
+          className="h-full w-full"
+          playing={secondaryPlaying}
+          onPlay={() => setSecondaryPlaying(true)}
+          onPause={() => setSecondaryPlaying(false)}
+        />
       </div>
     </div>
-  )
-}
-
-export function VideoLayout({ mode, primaryUrl, secondaryUrl }: VideoLayoutProps) {
-  if (mode === "split") return <SplitLayout primaryUrl={primaryUrl} secondaryUrl={secondaryUrl} />
-  if (mode === "pip") return <PipLayout primaryUrl={primaryUrl} secondaryUrl={secondaryUrl} />
-  return <FullscreenLayout primaryUrl={primaryUrl} />
+  );
 }
