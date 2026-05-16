@@ -9,12 +9,12 @@ interface VideoLayoutProps {
 }
 
 const primaryClasses: Record<LayoutMode, string> = {
-  split: "absolute inset-y-0 left-0 right-[calc(50%+4px)]",
+  split: "absolute inset-y-0 left-0 right-[calc(50%+1px)]",
   pip: "absolute inset-0",
 };
 
 const secondaryClasses: Record<LayoutMode, string> = {
-  split: "absolute inset-y-0 left-[calc(50%+4px)] right-0",
+  split: "absolute inset-y-0 left-[calc(50%+1px)] right-0",
   pip: "absolute bottom-4 right-4 z-10 w-64 aspect-video shadow-xl ring-1 ring-border rounded-lg overflow-hidden",
 };
 
@@ -55,8 +55,10 @@ export function VideoLayout({ primaryUrl, secondaryUrl }: VideoLayoutProps) {
 
   const { mode, isSwapped } = computeLayout(primaryPriorityUntil, secondaryPriorityUntil, manualLayoutMode);
   const transition = "transition-all duration-500 ease-in-out";
-  const primaryContainerClass = `${isSwapped ? secondaryClasses[mode] : primaryClasses[mode]} ${transition}`;
-  const secondaryContainerClass = `${isSwapped ? primaryClasses[mode] : secondaryClasses[mode]} ${transition}`;
+  const primaryZ = flashingVideoId === primaryVideoId ? "z-10" : "z-0";
+  const secondaryZ = flashingVideoId === secondaryVideoId ? "z-10" : "z-0";
+  const primaryContainerClass = `${isSwapped ? secondaryClasses[mode] : primaryClasses[mode]} ${transition} ${primaryZ}`;
+  const secondaryContainerClass = `${isSwapped ? primaryClasses[mode] : secondaryClasses[mode]} ${transition} ${secondaryZ}`;
 
   function handlePrimaryProgress(seconds: number) {
     setPrimaryTimestamp(seconds);

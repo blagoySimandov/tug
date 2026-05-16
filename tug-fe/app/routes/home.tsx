@@ -19,23 +19,23 @@ export default function Home() {
 
   return (
     <div className="flex h-svh flex-col bg-background">
-      <header className="flex items-center justify-between border-b border-border px-6 py-3">
-        <span className="text-sm font-semibold tracking-wide text-primary">
-          TUG
-        </span>
-        <div className="flex gap-1 items-center">
+      <header className="flex h-11 items-center gap-4 bg-primary px-5">
+        <span className="text-sm font-black tracking-tight text-accent">TUG</span>
+        <div className="h-5 w-px bg-primary-foreground/15" />
+        <div className="flex flex-1 justify-center">
           <ImportantMomentsBar />
         </div>
-        <div className="flex gap-1">
-          <AutoSwitch />
+        <AutoSwitch />
+        <div className="h-5 w-px bg-primary-foreground/15" />
+        <div className="flex overflow-hidden rounded border border-primary-foreground/15">
           {MODES.map(({ label, value }) => (
             <button
               key={value}
               onClick={() => setMode(value)}
-              className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
+              className={`px-3 py-1 text-xs font-medium transition-colors ${
                 mode === value
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-accent text-accent-foreground"
+                  : "text-primary-foreground/55 hover:bg-primary-foreground/10 hover:text-primary-foreground"
               }`}
             >
               {label}
@@ -44,7 +44,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-hidden p-4">
+      <main className="flex-1 overflow-hidden p-2">
         <VideoLayout
           primaryUrl={PRIMARY_URL}
           secondaryUrl={SECONDARY_URL}

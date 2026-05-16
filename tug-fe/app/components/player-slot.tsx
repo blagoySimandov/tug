@@ -18,7 +18,7 @@ export function PlayerSlot({
   onProgress,
 }: PlayerSlotProps) {
   return (
-    <div className={`overflow-hidden rounded-lg bg-foreground ${className}`}>
+    <div className={`overflow-hidden rounded-lg bg-card ${className}`}>
       <ReactPlayer
         src={url}
         width="100%"
