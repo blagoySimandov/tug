@@ -1,11 +1,9 @@
-import { useState } from "react";
-import { useLiveImportantMoments } from "~/api/hooks";
 import { AutoSwitch } from "~/components/autoswitch";
 import { ImportantMomentsBar } from "~/components/important-moments";
 import { VideoLayout, type LayoutMode } from "~/components/video-layout";
+import { useVideoStore } from "~/store/video";
 
 const MODES: { label: string; value: LayoutMode }[] = [
-  { label: "Full", value: "fullscreen" },
   { label: "Split", value: "split" },
   { label: "PiP", value: "pip" },
 ];
@@ -16,10 +14,8 @@ const SECONDARY_URL =
   "https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/cr_bra.mp4?alt=media&token=c648c419-949b-4048-b880-1613227fdaf8";
 
 export default function Home() {
-  const [mode, setMode] = useState<LayoutMode>("fullscreen");
-
-  const { data, isPending, error } = useLiveImportantMoments("arg_fr", 0, 10);
-  console.log(data, isPending, error);
+  const mode = useVideoStore((s) => s.manualLayoutMode);
+  const setMode = useVideoStore((s) => s.setManualLayoutMode);
 
   return (
     <div className="flex h-svh flex-col bg-background">
@@ -50,7 +46,6 @@ export default function Home() {
 
       <main className="flex-1 overflow-hidden p-4">
         <VideoLayout
-          mode={mode}
           primaryUrl={PRIMARY_URL}
           secondaryUrl={SECONDARY_URL}
         />

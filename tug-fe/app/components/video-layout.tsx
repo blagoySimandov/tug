@@ -1,64 +1,97 @@
-import { useVideoStore } from "~/store/video";
+import { useVideoStore, type LayoutMode } from "~/store/video";
 import { PlayerSlot } from "./player-slot";
 
-export type LayoutMode = "fullscreen" | "split" | "pip";
+export type { LayoutMode };
 
 interface VideoLayoutProps {
-  mode: LayoutMode;
   primaryUrl: string;
   secondaryUrl: string;
 }
 
 const primaryClasses: Record<LayoutMode, string> = {
-  fullscreen: "absolute inset-0",
   split: "absolute inset-y-0 left-0 right-[calc(50%+4px)]",
   pip: "absolute inset-0",
 };
 
 const secondaryClasses: Record<LayoutMode, string> = {
-  fullscreen: "absolute w-0 h-0 overflow-hidden opacity-0 pointer-events-none",
   split: "absolute inset-y-0 left-[calc(50%+4px)] right-0",
   pip: "absolute bottom-4 right-4 z-10 w-64 aspect-video shadow-xl ring-1 ring-border rounded-lg overflow-hidden",
 };
 
-export function VideoLayout({
-  mode,
-  primaryUrl,
-  secondaryUrl,
-}: VideoLayoutProps) {
+function FlashOverlay() {
+  return <div className="pointer-events-none absolute inset-0 rounded-lg flash-ring" />;
+}
+
+function computeLayout(
+  primaryPriorityUntil: number,
+  secondaryPriorityUntil: number,
+  manualLayoutMode: LayoutMode,
+): { mode: LayoutMode; isSwapped: boolean } {
+  const now = Date.now();
+  const primaryActive = primaryPriorityUntil > now;
+  const secondaryActive = secondaryPriorityUntil > now;
+
+  if (primaryActive && secondaryActive) return { mode: "split", isSwapped: false };
+  if (secondaryActive) return { mode: "pip", isSwapped: true };
+  if (primaryActive) return { mode: "pip", isSwapped: false };
+  return { mode: manualLayoutMode, isSwapped: false };
+}
+
+export function VideoLayout({ primaryUrl, secondaryUrl }: VideoLayoutProps) {
+  const primaryVideoId = useVideoStore((s) => s.primaryVideoId);
+  const secondaryVideoId = useVideoStore((s) => s.secondaryVideoId);
   const primaryPlaying = useVideoStore((s) => s.primaryPlaying);
   const secondaryPlaying = useVideoStore((s) => s.secondaryPlaying);
   const setPrimaryPlaying = useVideoStore((s) => s.setPrimaryPlaying);
   const setSecondaryPlaying = useVideoStore((s) => s.setSecondaryPlaying);
-  const setCurrentTimestamp = useVideoStore((s) => s.setCurrentTimestamp);
+  const setPrimaryTimestamp = useVideoStore((s) => s.setPrimaryTimestamp);
+  const setSecondaryTimestamp = useVideoStore((s) => s.setSecondaryTimestamp);
+  const flashingVideoId = useVideoStore((s) => s.flashingVideoId);
+  const flashCount = useVideoStore((s) => s.flashCount);
+  const setFlashingVideoId = useVideoStore((s) => s.setFlashingVideoId);
+  const primaryPriorityUntil = useVideoStore((s) => s.primaryPriorityUntil);
+  const secondaryPriorityUntil = useVideoStore((s) => s.secondaryPriorityUntil);
+  const manualLayoutMode = useVideoStore((s) => s.manualLayoutMode);
 
-  function handleProgress(seconds: number) {
-    setCurrentTimestamp(seconds);
+  const { mode, isSwapped } = computeLayout(primaryPriorityUntil, secondaryPriorityUntil, manualLayoutMode);
+  const transition = "transition-all duration-500 ease-in-out";
+  const primaryContainerClass = `${isSwapped ? secondaryClasses[mode] : primaryClasses[mode]} ${transition}`;
+  const secondaryContainerClass = `${isSwapped ? primaryClasses[mode] : secondaryClasses[mode]} ${transition}`;
+
+  function handlePrimaryProgress(seconds: number) {
+    setPrimaryTimestamp(seconds);
     if (Math.floor(seconds) % 5 === 0) {
-      console.log("[store] currentTimestamp", seconds.toFixed(2));
+      console.log("[store] primaryTimestamp", seconds.toFixed(2));
     }
   }
 
   return (
     <div className="relative h-full w-full">
-      <div className={primaryClasses[mode]}>
+      <div className={primaryContainerClass}>
         <PlayerSlot
           url={primaryUrl}
           className="h-full w-full"
           playing={primaryPlaying}
           onPlay={() => setPrimaryPlaying(true)}
           onPause={() => setPrimaryPlaying(false)}
-          onProgress={handleProgress}
+          onProgress={handlePrimaryProgress}
         />
+        {flashingVideoId === primaryVideoId && (
+          <FlashOverlay key={flashCount} />
+        )}
       </div>
-      <div className={secondaryClasses[mode]}>
+      <div className={secondaryContainerClass}>
         <PlayerSlot
           url={secondaryUrl}
           className="h-full w-full"
           playing={secondaryPlaying}
           onPlay={() => setSecondaryPlaying(true)}
           onPause={() => setSecondaryPlaying(false)}
+          onProgress={setSecondaryTimestamp}
         />
+        {flashingVideoId === secondaryVideoId && (
+          <FlashOverlay key={flashCount} />
+        )}
       </div>
     </div>
   );

@@ -129,3 +129,12 @@
     @apply font-sans;
     }
 }
+
+@keyframes flash-ring {
+  0%, 100% { box-shadow: 0 0 0 2px oklch(0.72 0.145 76 / 0.6), 0 0 16px 6px oklch(0.72 0.145 76 / 0.2); }
+  50%       { box-shadow: 0 0 0 4px oklch(0.72 0.145 76 / 1),   0 0 32px 12px oklch(0.72 0.145 76 / 0.5); }
+}
+
+.flash-ring {
+  animation: flash-ring 1.5s ease-in-out infinite;
+}
