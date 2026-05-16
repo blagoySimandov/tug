@@ -4,3 +4,4 @@ tug-fe/build
 test-data
 test.json
 tug-be/test_transcription.py
+tug-be/test_stt_gem_wrap.py
