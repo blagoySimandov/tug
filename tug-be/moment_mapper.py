@@ -2,12 +2,12 @@ from models import ImportantMoment, MomentType
 
 # (importanceScore, priorityDuration in seconds)
 _SCORING: dict[str, tuple[float, float]] = {
-    "goal":         (0.95, 10),
-    "red_card":     (0.85,  8),
-    "var_decision": (0.70,  6),
-    "yellow_card":  (0.55,  5),
-    "period":       (0.40,  4),
-    "substitution": (0.20,  3),
+    "goal": (0.95, 10),
+    "red_card": (0.85, 8),
+    "var_decision": (0.70, 6),
+    "yellow_card": (0.55, 5),
+    "period": (0.40, 4),
+    "substitution": (0.20, 3),
 }
 
 
@@ -32,11 +32,13 @@ def incidents_to_moments(event_id: int, incidents: list[dict]) -> list[Important
         score, duration = _SCORING[kind]
         minute = inc.get("minute", 0) or 0
         added = inc.get("added_time") or 0
-        moments.append(ImportantMoment(
-            type=kind,
-            videoId=str(event_id),
-            videoTimestamp=(minute + added) * 60,
-            importanceScore=score,
-            priorityDuration=duration,
-        ))
+        moments.append(
+            ImportantMoment(
+                type=kind,
+                videoId=str(event_id),
+                videoTimestamp=(minute + added) * 60,
+                importanceScore=score,
+                priorityDuration=duration,
+            )
+        )
     return moments
