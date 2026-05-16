@@ -14,12 +14,20 @@ export default function Player() {
   const [searchParams] = useSearchParams();
   const mode = useVideoStore((s) => s.manualLayoutMode);
   const setMode = useVideoStore((s) => s.setManualLayoutMode);
-  const { data: matches = [] } = useMatches();
+  const { data: matches = [], isLoading } = useMatches();
 
   const primaryId = searchParams.get("primary") ?? "";
   const secondaryId = searchParams.get("secondary") ?? "";
   const primaryMatch = matches.find((m) => m.id === primaryId);
   const secondaryMatch = matches.find((m) => m.id === secondaryId);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-svh items-center justify-center text-muted-foreground">
+        Loading...
+      </div>
+    );
+  }
 
   if (!primaryMatch) {
     return (

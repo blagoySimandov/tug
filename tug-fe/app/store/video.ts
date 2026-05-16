@@ -18,6 +18,8 @@ interface VideoState {
 }
 
 interface VideoActions {
+  setPrimaryVideoId: (id: string) => void;
+  setSecondaryVideoId: (id: string) => void;
   setPrimaryPlaying: (playing: boolean) => void;
   setSecondaryPlaying: (playing: boolean) => void;
   setPrimaryTimestamp: (timestamp: number) => void;
@@ -43,6 +45,8 @@ export const useVideoStore = create<VideoState & VideoActions>((set) => ({
   flashingVideoId: null,
   flashCount: 0,
 
+  setPrimaryVideoId: (id) => set({ primaryVideoId: id }),
+  setSecondaryVideoId: (id) => set({ secondaryVideoId: id }),
   setPrimaryPlaying: (playing) => set({ primaryPlaying: playing }),
   setSecondaryPlaying: (playing) => set({ secondaryPlaying: playing }),
   setPrimaryTimestamp: (timestamp) => set({ primaryTimestamp: timestamp }),

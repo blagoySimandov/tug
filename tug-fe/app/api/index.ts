@@ -1,8 +1,4 @@
-import type { ImportantMomentsResponse, MatchesResponse, EventsFilter, EventsResponse } from "./types";
-import { MOCK_MATCHES } from "./mock-data";
-
-// Flip to false when backend is ready
-const USE_MOCK = true;
+import type { ImportantMomentsResponse, MatchesResponse, EventsFilter, EventsResponse, BsdEvent } from "./types";
 
 export class Api {
   baseUrl: string;
@@ -29,16 +25,18 @@ export class Api {
     return url;
   }
 
-  /**
-   * Gets the "important moments" for a video.
-   * @param videoId The ID of the video to get segments for.
-   * @returns The segments for the video.
-   */
+  private eventToMatch(event: BsdEvent): MatchesResponse[number] {
+    return {
+      id: String(event.id),
+      homeTeam: { name: event.home_team, flag: "" },
+      awayTeam: { name: event.away_team, flag: "" },
+      url: event.video_filename ?? "",
+    };
+  }
+
   public async getMatches(): Promise<MatchesResponse> {
-    if (USE_MOCK) return MOCK_MATCHES;
-    const url = this.buildUrl(this.baseUrl, "/matches");
-    const res = await fetch(url);
-    return res.json() as Promise<MatchesResponse>;
+    const events = await this.getEvents();
+    return events.results.map((e) => this.eventToMatch(e));
   }
 
   public async getEvents(filter: EventsFilter = {}): Promise<EventsResponse> {
