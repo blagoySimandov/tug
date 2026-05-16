@@ -19,6 +19,33 @@ def _http() -> httpx.AsyncClient:
     )
 
 
+async def get_events(
+    year: int | None = None,
+    league_id: int | None = None,
+    team_name: str | None = None,
+    team_id: int | None = None,
+    status: str | None = None,
+    limit: int = 20,
+    offset: int = 0,
+) -> dict:
+    params: dict = {"limit": limit, "offset": offset}
+    if year is not None:
+        params["date_from"] = f"{year}-01-01"
+        params["date_to"] = f"{year}-12-31"
+    if league_id is not None:
+        params["league_id"] = league_id
+    if team_name is not None:
+        params["team_name"] = team_name
+    if team_id is not None:
+        params["team_id"] = team_id
+    if status is not None:
+        params["status"] = status
+    async with _http() as c:
+        r = await c.get("/events/", params=params)
+        r.raise_for_status()
+        return r.json()
+
+
 async def get_event(event_id: int) -> dict:
     async with _http() as c:
         r = await c.get(f"/events/{event_id}/")
