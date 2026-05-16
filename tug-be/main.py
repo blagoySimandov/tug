@@ -3,7 +3,7 @@ from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from models import ImportantMoment, BatchMomentsRequest
 from routes.events import router as events_router
-from mock import MOCK_MOMENTS
+from routes.narrate import router as narrate_router
 from ai.stt.stt_gem_wrap import transcribe_and_analyze
 import bsd_past
 import moment_mapper
@@ -25,6 +25,7 @@ app.add_middleware(
 )
 
 app.include_router(events_router)
+app.include_router(narrate_router)
 
 @app.get("/")
 def read_root():
