@@ -7,15 +7,28 @@ from os import environ
 T = TypeVar("T", bound=BaseModel)
 
 
-
 class AiClient:
     DEFAULT_MODEL = "gemini-3-flash-preview"
 
     AvaillableTTSVoices = Literal[
-        "Puck", "Achernar", "Alnilam", "Autonoe", "Enceladus", "Rasalgethi",
-        "Sadachbia", "Schedar", "Umbriel", "Zubenelgenubi", # Male-leaning
-        "Achird", "Algenib", "Callirrhoe", "Despina", "Pulcherrima",
-        "Sulafat", "Vindemiatrix", "Zephyr" # Female-leaning
+        "Puck",
+        "Achernar",
+        "Alnilam",
+        "Autonoe",
+        "Enceladus",
+        "Rasalgethi",
+        "Sadachbia",
+        "Schedar",
+        "Umbriel",
+        "Zubenelgenubi",  # Male-leaning
+        "Achird",
+        "Algenib",
+        "Callirrhoe",
+        "Despina",
+        "Pulcherrima",
+        "Sulafat",
+        "Vindemiatrix",
+        "Zephyr",  # Female-leaning
     ]
 
     def __init__(self):
@@ -61,7 +74,10 @@ class AiClient:
         return cast(T, response.parsed)
 
     def generate_speech(
-        self, prompt: str, voice_name: AvaillableTTSVoices  = "Puck", model: str = DEFAULT_MODEL
+        self,
+        prompt: str,
+        voice_name: AvaillableTTSVoices = "Puck",
+        model: str = DEFAULT_MODEL,
     ) -> bytes | None:
         """Generates speech (TTS) from a prompt and returns the audio bytes."""
 
@@ -94,4 +110,3 @@ class AiClient:
                 return part.inline_data.data
 
         return None
-
