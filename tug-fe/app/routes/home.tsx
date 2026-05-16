@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AutoSwitch } from "~/components/autoswitch";
 import { VideoLayout, type LayoutMode } from "~/components/video-layout";
 
 const MODES: { label: string; value: LayoutMode }[] = [
@@ -22,6 +23,7 @@ export default function Home() {
           TUG
         </span>
         <div className="flex gap-1">
+          <AutoSwitch />
           {MODES.map(({ label, value }) => (
             <button
               key={value}
