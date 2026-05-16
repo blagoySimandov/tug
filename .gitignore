@@ -1,3 +1,5 @@
 tug-fe/node_modules
 tug-fe/.react-router
 tug-fe/build
+test-data
+test.json
