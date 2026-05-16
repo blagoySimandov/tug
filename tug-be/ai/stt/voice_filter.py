@@ -19,11 +19,14 @@ def remove_commentary(input: BytesIO) -> BytesIO:
         pan = graph.add("pan", "stereo|c0=c0-c1|c1=c1-c0")
         # Cut voice frequency range (1kHz–4kHz)
         equalizer = graph.add("equalizer", "f=2500:width_type=o:width=3:g=-12")
+        # Boost volume to compensate for the level drop from pan subtraction
+        volume = graph.add("volume", "volume=6dB")
         abuffersink = graph.add("abuffersink")
 
         abuffer.link_to(pan)
         pan.link_to(equalizer)
-        equalizer.link_to(abuffersink)
+        equalizer.link_to(volume)
+        volume.link_to(abuffersink)
         graph.configure()
 
         with av.open(output_buffer, "w", format="mp3") as out_container:

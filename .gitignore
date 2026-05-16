@@ -5,3 +5,7 @@ test-data
 test.json
 tug-be/test_transcription.py
 tug-be/test_stt_gem_wrap.py
+tug-be/test_voice_filter.py
+tug-be/filtered_output.mp3
+tug-be/filtered_no_boost.mp3
+tug-be/filtered_boosted.mp3
