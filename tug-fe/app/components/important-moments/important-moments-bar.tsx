@@ -13,6 +13,7 @@ export const ImportantMomentsBar = () => {
   const secondaryVideoId = useVideoStore((s) => s.secondaryVideoId);
   const primaryTimestamp = useVideoStore((s) => s.primaryTimestamp);
   const secondaryTimestamp = useVideoStore((s) => s.secondaryTimestamp);
+  const autoswitchEnabled = useVideoStore((s) => s.autoswitchEnabled);
   const setFlashingVideoId = useVideoStore((s) => s.setFlashingVideoId);
   const setPriorityUntil = useVideoStore((s) => s.setPriorityUntil);
   const clearPriority = useVideoStore((s) => s.clearPriority);
@@ -35,12 +36,14 @@ export const ImportantMomentsBar = () => {
 
     clearTimeout(timeoutsRef.current[newMoment.videoId]);
     setFlashingVideoId(newMoment.videoId);
-    setPriorityUntil(newMoment.videoId, Date.now() + newMoment.priorityDuration * 1000);
+    if (autoswitchEnabled) {
+      setPriorityUntil(newMoment.videoId, Date.now() + newMoment.priorityDuration * 1000);
+    }
     timeoutsRef.current[newMoment.videoId] = setTimeout(() => {
-      clearPriority(newMoment.videoId);
+      if (autoswitchEnabled) clearPriority(newMoment.videoId);
       setFlashingVideoId(null);
     }, newMoment.priorityDuration * 1000);
-  }, [visible, setFlashingVideoId, setPriorityUntil, clearPriority]);
+  }, [visible, autoswitchEnabled, setFlashingVideoId, setPriorityUntil, clearPriority]);
 
   return (
     <div className="flex gap-2 items-center">
