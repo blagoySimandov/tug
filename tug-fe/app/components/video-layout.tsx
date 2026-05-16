@@ -5,7 +5,7 @@ export type { LayoutMode };
 
 interface VideoLayoutProps {
   primaryUrl: string;
-  secondaryUrl: string;
+  secondaryUrl?: string;
 }
 
 const primaryClasses: Record<LayoutMode, string> = {
@@ -37,7 +37,7 @@ function computeLayout(
   return { mode: manualLayoutMode, isSwapped: false };
 }
 
-export function VideoLayout({ primaryUrl, secondaryUrl }: VideoLayoutProps) {
+function DualVideoLayout({ primaryUrl, secondaryUrl }: { primaryUrl: string; secondaryUrl: string }) {
   const primaryVideoId = useVideoStore((s) => s.primaryVideoId);
   const secondaryVideoId = useVideoStore((s) => s.secondaryVideoId);
   const primaryPlaying = useVideoStore((s) => s.primaryPlaying);
@@ -48,7 +48,6 @@ export function VideoLayout({ primaryUrl, secondaryUrl }: VideoLayoutProps) {
   const setSecondaryTimestamp = useVideoStore((s) => s.setSecondaryTimestamp);
   const flashingVideoId = useVideoStore((s) => s.flashingVideoId);
   const flashCount = useVideoStore((s) => s.flashCount);
-  const setFlashingVideoId = useVideoStore((s) => s.setFlashingVideoId);
   const primaryPriorityUntil = useVideoStore((s) => s.primaryPriorityUntil);
   const secondaryPriorityUntil = useVideoStore((s) => s.secondaryPriorityUntil);
   const manualLayoutMode = useVideoStore((s) => s.manualLayoutMode);
@@ -78,9 +77,7 @@ export function VideoLayout({ primaryUrl, secondaryUrl }: VideoLayoutProps) {
           onPause={() => setPrimaryPlaying(false)}
           onProgress={handlePrimaryProgress}
         />
-        {flashingVideoId === primaryVideoId && (
-          <FlashOverlay key={flashCount} />
-        )}
+        {flashingVideoId === primaryVideoId && <FlashOverlay key={flashCount} />}
       </div>
       <div className={secondaryContainerClass}>
         <PlayerSlot
@@ -91,10 +88,19 @@ export function VideoLayout({ primaryUrl, secondaryUrl }: VideoLayoutProps) {
           onPause={() => setSecondaryPlaying(false)}
           onProgress={setSecondaryTimestamp}
         />
-        {flashingVideoId === secondaryVideoId && (
-          <FlashOverlay key={flashCount} />
-        )}
+        {flashingVideoId === secondaryVideoId && <FlashOverlay key={flashCount} />}
       </div>
     </div>
   );
+}
+
+export function VideoLayout({ primaryUrl, secondaryUrl }: VideoLayoutProps) {
+  if (!secondaryUrl) {
+    return (
+      <div className="relative h-full w-full">
+        <PlayerSlot url={primaryUrl} className="h-full w-full" />
+      </div>
+    );
+  }
+  return <DualVideoLayout primaryUrl={primaryUrl} secondaryUrl={secondaryUrl} />;
 }

@@ -11,11 +11,16 @@ from routes.events import router as events_router
 import bsd_past
 import moment_mapper
 
-app = FastAPI()
+app = FastAPI(
+    title="tug-be",
+    description="Backend for tug",
+    version="0.1.0",
+)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # frontend dev server
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -7,7 +7,8 @@
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
-    "format": "prettier --write \"**/*.{ts,tsx}\""
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "gen:types": "openapi-typescript http://localhost:8000/openapi.json -o app/api/generated.ts"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
@@ -29,6 +30,7 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "openapi-typescript": "^7.8.0",
     "@react-router/dev": "7.13.1",
     "@tailwindcss/vite": "^4.2.1",
     "@types/node": "^22",

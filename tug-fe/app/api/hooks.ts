@@ -1,6 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "./context";
-import type { ImportantMomentsResponse } from "./types";
+import type { ImportantMomentsResponse, MatchesResponse } from "./types";
+
+export function useMatches() {
+  const api = useApi();
+  return useQuery<MatchesResponse>({
+    queryKey: ["matches"],
+    queryFn: () => api.getMatches(),
+  });
+}
 
 export function useLiveImportantMoments(
   videoId: string,

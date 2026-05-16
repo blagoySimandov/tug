@@ -1,5 +1,5 @@
-import type { ImportantMomentsResponse } from "./types";
-import { getMockMoments } from "./mock-data";
+import type { ImportantMomentsResponse, MatchesResponse } from "./types";
+import { MOCK_MATCHES } from "./mock-data";
 
 // Flip to false when backend is ready
 const USE_MOCK = true;
@@ -7,7 +7,7 @@ const USE_MOCK = true;
 export class Api {
   baseUrl: string;
   constructor() {
-    this.baseUrl = "https://tug-splitball.web.app/api"; //TODO: Change to live
+    this.baseUrl = "http://localhost:8000";
   }
 
   /**
@@ -34,14 +34,18 @@ export class Api {
    * @param videoId The ID of the video to get segments for.
    * @returns The segments for the video.
    */
+  public async getMatches(): Promise<MatchesResponse> {
+    if (USE_MOCK) return MOCK_MATCHES;
+    const url = this.buildUrl(this.baseUrl, "/matches");
+    const res = await fetch(url);
+    return res.json() as Promise<MatchesResponse>;
+  }
+
   public async getLiveImportantMoments(
     videoId: string,
     timestampStart: number,
     timestampEnd: number,
   ): Promise<ImportantMomentsResponse> {
-    if (USE_MOCK) {
-      return getMockMoments(videoId, timestampStart, timestampEnd);
-    }
     const url = this.buildUrl(this.baseUrl, `/${videoId}/important-moments`, {
       start: timestampStart,
       end: timestampEnd,
