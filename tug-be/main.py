@@ -1,25 +1,26 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from models import ImportantMoment, BatchQuery, BatchMomentsRequest
+from models import ImportantMoment, BatchMomentsRequest
+from mock import MOCK_MOMENTS
 
-app = FastAPI()
+app = FastAPI(
+    title="tug-be",
+    description="Backend for tug",
+    version="0.1.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
-MOCK_MOMENTS: dict[str, list[ImportantMoment]] = {
-    "cr_bra": [
-        ImportantMoment(type="goal",     videoId="cr_bra", videoTimestamp=15,  importanceScore=0.85, priorityDuration=8),
-        ImportantMoment(type="red_card", videoId="cr_bra", videoTimestamp=45,  importanceScore=0.70, priorityDuration=6),
-        ImportantMoment(type="goal",     videoId="cr_bra", videoTimestamp=90,  importanceScore=0.92, priorityDuration=10),
-    ],
-    "arg_fr": [
-        ImportantMoment(type="goal",     videoId="arg_fr", videoTimestamp=10,  importanceScore=0.90, priorityDuration=8),
-        ImportantMoment(type="red_card", videoId="arg_fr", videoTimestamp=30,  importanceScore=0.75, priorityDuration=6),
-        ImportantMoment(type="goal",     videoId="arg_fr", videoTimestamp=60,  importanceScore=0.95, priorityDuration=10),
-    ],
-}
-
-
-def get_moments_for_video(video_id: str, start: float, end: float) -> list[ImportantMoment]:
+def get_moments_for_video(
+    video_id: str, start: float, end: float
+) -> list[ImportantMoment]:
     moments = MOCK_MOMENTS.get(video_id, [])
     return [m for m in moments if start <= m.videoTimestamp <= end]
 
@@ -54,7 +55,6 @@ def get_important_moments(
     if video_id not in MOCK_MOMENTS:
         raise HTTPException(status_code=404, detail=f"Video '{video_id}' not found")
     return get_moments_for_video(video_id, start, end)
-
 
 
 @app.post("/important-moments/batch", response_model=dict[str, list[ImportantMoment]])
