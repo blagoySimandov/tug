@@ -1,15 +1,14 @@
-import os
-import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from fastapi import FastAPI, Query
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from models import ImportantMoment
 from routes.events import router as events_router
 import bsd_past
 import moment_mapper
+
+load_dotenv()
 
 app = FastAPI(
     title="tug-be",
