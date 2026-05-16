@@ -1,7 +1,10 @@
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from models import ImportantMoment, BatchMomentsRequest
 from mock import MOCK_MOMENTS
+
+load_dotenv()
 
 app = FastAPI(
     title="tug-be",
