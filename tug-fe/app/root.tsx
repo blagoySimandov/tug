@@ -9,6 +9,10 @@ import {
 
 import type { Route } from "./+types/root"
 import "./app.css"
+import { ApiProvider } from "./api/context"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+
+const queryClient = new QueryClient()
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -29,7 +33,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ApiProvider>
+        <Outlet />
+      </ApiProvider>
+    </QueryClientProvider>
+  )
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLiveImportantMoments } from "~/api/hooks";
 import { AutoSwitch } from "~/components/autoswitch";
 import { ImportantMomentsBar } from "~/components/important-moments";
 import { VideoLayout, type LayoutMode } from "~/components/video-layout";
@@ -16,6 +17,9 @@ const SECONDARY_URL =
 
 export default function Home() {
   const [mode, setMode] = useState<LayoutMode>("fullscreen");
+
+  const { data, isPending, error } = useLiveImportantMoments("arg_fr", 0, 10);
+  console.log(data, isPending, error);
 
   return (
     <div className="flex h-svh flex-col bg-background">

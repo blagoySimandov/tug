@@ -6,6 +6,7 @@ interface PlayerSlotProps {
   playing?: boolean;
   onPlay?: () => void;
   onPause?: () => void;
+  onProgress?: (seconds: number) => void;
 }
 
 export function PlayerSlot({
@@ -14,6 +15,7 @@ export function PlayerSlot({
   playing = false,
   onPlay,
   onPause,
+  onProgress,
 }: PlayerSlotProps) {
   return (
     <div className={`overflow-hidden rounded-lg bg-foreground ${className}`}>
@@ -25,6 +27,7 @@ export function PlayerSlot({
         playing={playing}
         onPlay={onPlay}
         onPause={onPause}
+        onTimeUpdate={(e) => onProgress?.(e.currentTarget.currentTime)}
       />
     </div>
   );

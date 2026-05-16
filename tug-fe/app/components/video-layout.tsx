@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useVideoStore } from "~/store/video";
 import { PlayerSlot } from "./player-slot";
 
 export type LayoutMode = "fullscreen" | "split" | "pip";
@@ -26,8 +26,18 @@ export function VideoLayout({
   primaryUrl,
   secondaryUrl,
 }: VideoLayoutProps) {
-  const [primaryPlaying, setPrimaryPlaying] = useState(false);
-  const [secondaryPlaying, setSecondaryPlaying] = useState(false);
+  const primaryPlaying = useVideoStore((s) => s.primaryPlaying);
+  const secondaryPlaying = useVideoStore((s) => s.secondaryPlaying);
+  const setPrimaryPlaying = useVideoStore((s) => s.setPrimaryPlaying);
+  const setSecondaryPlaying = useVideoStore((s) => s.setSecondaryPlaying);
+  const setCurrentTimestamp = useVideoStore((s) => s.setCurrentTimestamp);
+
+  function handleProgress(seconds: number) {
+    setCurrentTimestamp(seconds);
+    if (Math.floor(seconds) % 5 === 0) {
+      console.log("[store] currentTimestamp", seconds.toFixed(2));
+    }
+  }
 
   return (
     <div className="relative h-full w-full">
@@ -38,6 +48,7 @@ export function VideoLayout({
           playing={primaryPlaying}
           onPlay={() => setPrimaryPlaying(true)}
           onPause={() => setPrimaryPlaying(false)}
+          onProgress={handleProgress}
         />
       </div>
       <div className={secondaryClasses[mode]}>
