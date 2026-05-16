@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from models import ImportantMoment, BatchMomentsRequest
 from mock import MOCK_MOMENTS
+from ai.stt.stt_gem_wrap import transcribe_and_analyze
 
 load_dotenv()
 
@@ -49,15 +50,22 @@ def get_videos():
     ]
 
 
+VIDEO_URLS: dict[str, str] = {
+    "arg_fr": "https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/arg_fr.mp4?alt=media&token=5ee16507-af66-4409-b9f1-2de014937342",
+    "cr_bra": "https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/cr_bra.mp4?alt=media&token=c648c419-949b-4048-b880-1613227fdaf8",
+}
+
+
 @app.get("/{video_id}/important-moments", response_model=list[ImportantMoment])
-def get_important_moments(
+async def get_important_moments(
     video_id: str,
     start: float = Query(0),
     end: float = Query(float("inf")),
 ):
-    if video_id not in MOCK_MOMENTS:
+    if video_id not in VIDEO_URLS:
         raise HTTPException(status_code=404, detail=f"Video '{video_id}' not found")
-    return get_moments_for_video(video_id, start, end)
+    all_moments = await transcribe_and_analyze(video_id, VIDEO_URLS[video_id])
+    return [m for m in all_moments if start <= m.videoTimestamp <= end]
 
 
 @app.post("/important-moments/batch", response_model=dict[str, list[ImportantMoment]])
