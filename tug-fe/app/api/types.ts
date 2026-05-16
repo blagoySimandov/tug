@@ -1,5 +1,19 @@
 export type MomentType = "goal" | "red_card";
 
+export interface Team {
+  name: string;
+  flag: string;
+}
+
+export interface Match {
+  id: string;
+  homeTeam: Team;
+  awayTeam: Team;
+  url: string;
+}
+
+export type MatchesResponse = Match[];
+
 export interface ImportantMoment {
   type: MomentType;
   videoId: string;
