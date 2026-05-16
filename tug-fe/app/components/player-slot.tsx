@@ -1,34 +1,26 @@
+import { forwardRef } from "react";
 import ReactPlayer from "react-player";
 
 interface PlayerSlotProps {
   url: string;
   className?: string;
-  playing?: boolean;
-  onPlay?: () => void;
-  onPause?: () => void;
   onProgress?: (seconds: number) => void;
 }
 
-export function PlayerSlot({
-  url,
-  className = "",
-  playing = false,
-  onPlay,
-  onPause,
-  onProgress,
-}: PlayerSlotProps) {
+export const PlayerSlot = forwardRef<HTMLVideoElement, PlayerSlotProps>(function PlayerSlot(
+  { url, className = "", onProgress },
+  ref,
+) {
   return (
     <div className={`overflow-hidden rounded-lg bg-card ${className}`}>
       <ReactPlayer
+        ref={ref}
         src={url}
         width="100%"
         height="100%"
         controls
-        playing={playing}
-        onPlay={onPlay}
-        onPause={onPause}
         onTimeUpdate={(e) => onProgress?.(e.currentTarget.currentTime)}
       />
     </div>
   );
-}
+});
