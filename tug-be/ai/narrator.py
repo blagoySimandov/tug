@@ -65,8 +65,16 @@ def _build_narrator_prompt(
         f"[{s.start:.1f}s -> {s.end:.1f}s] {s.text.strip()}" for s in segments
     )
 
-    return f"""You are a {style.persona} football (soccer) broadcast narrator preparing a script for text-to-speech playback.
+    persona_block = ""
+    if style.custom_instruction:
+        persona_block = f"""
+ACTIVE NARRATOR PERSONA (set by viewer — applies to this segment and ALL subsequent segments of this video until explicitly changed):
+{style.custom_instruction}
+Adopt this as your narrator identity. Every stylistic choice — tone, vocabulary, energy, perspective — must reflect this directive consistently. Do not revert to a default style.
+"""
 
+    return f"""You are a football (soccer) broadcast narrator preparing a script for text-to-speech playback.
+{persona_block}
 Match: {home} vs {away} | {league}
 Score at time of cut: {home_score} - {away_score}
 Video window: {window_start:.0f}s to {window_end:.0f}s
@@ -86,9 +94,8 @@ Rules:
 - Treat the transcript as raw input; elevate and dramatize it into proper broadcast commentary
 - Incorporate the match context and key incidents naturally
 - Target approximately {style.target_duration_seconds} seconds when read aloud at broadcast pace
-- Style: {style.persona} — match the energy level throughout
+- Base energy/style: {style.persona}{" — but always defer to the ACTIVE NARRATOR PERSONA above if one is set" if style.custom_instruction else " — match the energy level throughout"}
 - End on a strong note, not mid-sentence
-{f"- Viewer instruction: {style.custom_instruction}" if style.custom_instruction else ""}
 Begin the narration now:"""
 
 
