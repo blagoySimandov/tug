@@ -22,7 +22,7 @@ def _build_prompt(video_id: str, segments: list[TranscriptSegment]) -> str:
     )
     return f"""You are a sports broadcast analyst. Below is a timestamped transcript of commentary from a football (soccer) match video with id "{video_id}".
 
-Identify ALL notable moments. Be generous — include anything that sounds exciting or significant. Types ranked by importance:
+Identify ALL notable moments. Include anything that sounds exciting or significant. Types ranked by importance:
 - "goal": goal scored
 - "red_card": player sent off
 - "yellow_card": booking
@@ -33,6 +33,7 @@ Identify ALL notable moments. Be generous — include anything that sounds excit
 - "free_kick": dangerous free kick
 - "corner": corner kick leading to danger
 - "highlight": any other notable moment worth flagging
+- "attack": "really good attack that is worth highlighting"
 
 For each moment return:
 - type: one of the types listed above
@@ -41,7 +42,7 @@ For each moment return:
 - importanceScore: a float between 0.0 and 1.0 reflecting significance
 - priorityDuration: seconds to stay highlighted (goal=10, red_card=8, penalty=8, near_miss=5, yellow_card=5, var_decision=6, substitution=4, free_kick=4, corner=3, highlight=5)
 
-Include moments even if you are only somewhat sure. Err on the side of including more. Return an empty list only if the transcript contains no match action at all.
+Return an empty list only if the transcript contains no match action at all.
 
 Transcript:
 {transcript_text}"""
