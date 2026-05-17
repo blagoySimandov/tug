@@ -46,6 +46,7 @@ function MatchCard({
 
 export default function Home() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [narratorEnabled, setNarratorEnabled] = useState(false);
   const navigate = useNavigate();
   const { data: matches = [], isLoading } = useMatches();
   const setPrimaryVideoId = useVideoStore((s) => s.setPrimaryVideoId);
@@ -67,6 +68,7 @@ export default function Home() {
     const params = new URLSearchParams();
     params.set("primary", ids[0]);
     if (ids[1]) params.set("secondary", ids[1]);
+    if (narratorEnabled) params.set("narrator", "1");
     navigate(`/player?${params.toString()}`);
   }
 
@@ -93,6 +95,21 @@ export default function Home() {
               />
             ))}
           </div>
+        )}
+        {selected.size === 1 && (
+          <button
+            onClick={() => setNarratorEnabled((v) => !v)}
+            className={`flex items-center gap-3 rounded-lg border px-5 py-2.5 text-sm font-medium transition-colors ${
+              narratorEnabled
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-border text-muted-foreground hover:border-primary/30 hover:text-foreground"
+            }`}
+          >
+            <span className={`relative h-4 w-7 rounded-full transition-colors ${narratorEnabled ? "bg-accent" : "bg-muted"}`}>
+              <span className={`absolute top-0 h-4 w-4 rounded-full bg-white shadow transition-transform ${narratorEnabled ? "translate-x-3" : "translate-x-0"}`} />
+            </span>
+            Custom Narrator
+          </button>
         )}
         <button
           disabled={selected.size === 0}

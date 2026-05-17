@@ -47,3 +47,10 @@ export type EventsResponse = {
   previous: string | null;
   results: BsdEvent[];
 };
+
+export type NarratorStyle = {
+  temperature?: number;
+  persona?: string;
+  target_duration_seconds?: number;
+  voice?: string;
+};

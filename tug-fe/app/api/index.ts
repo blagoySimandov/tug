@@ -1,4 +1,4 @@
-import type { ImportantMomentsResponse, MatchesResponse, EventsFilter, EventsResponse, BsdEvent } from "./types";
+import type { ImportantMomentsResponse, MatchesResponse, EventsFilter, EventsResponse, BsdEvent, NarratorStyle } from "./types";
 
 export class Api {
   baseUrl: string;
@@ -59,6 +59,23 @@ export class Api {
     return res.blob();
   }
 
+  public async narrateAudio(
+    eventId: number,
+    url: string,
+    windowStart: number = 0,
+    windowEnd: number = 300,
+    style?: NarratorStyle,
+  ): Promise<Blob> {
+    const endpoint = this.buildUrl(this.baseUrl, `/narrate/${eventId}/audio`);
+    const res = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, window_start: windowStart, window_end: windowEnd, style }),
+    });
+    if (!res.ok) throw new Error(`Narrate failed: ${res.statusText}`);
+    return res.blob();
+  }
+
   public async getLiveImportantMoments(
     videoId: string,
     timestampStart: number,
@@ -69,6 +86,7 @@ export class Api {
       end: timestampEnd,
     });
     const res = await fetch(url);
+    if (!res.ok) throw new Error(`important-moments ${res.status}: ${videoId}`);
     return res.json() as Promise<ImportantMomentsResponse>;
   }
 }

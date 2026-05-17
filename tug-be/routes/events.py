@@ -1,9 +1,15 @@
+import asyncio
+import logging
 from dataclasses import dataclass
 from enum import IntEnum
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse, PlainTextResponse
+
+log = logging.getLogger(__name__)
 
 import bsd_past
+import narrated_segmenter  # type: ignore[import-untyped]
 from models import (
     BsdEvent,
     EventLineups,
@@ -138,3 +144,31 @@ async def get_player_stats(event_id: int):
 @router.get("/{event_id}/snapshot", response_model=MatchSnapshot)
 async def get_match_snapshot(event_id: int):
     return await bsd_past.get_match_snapshot(event_id)
+
+
+def _get_match_config(event_id: int) -> MatchConfig:
+    try:
+        cfg = MATCHES.get(Match(event_id))
+    except ValueError:
+        cfg = None
+    if cfg is None:
+        raise HTTPException(status_code=404, detail=f"Event {event_id} not found")
+    return cfg
+
+
+@router.get("/{event_id}/narrated-stream.m3u8")
+async def get_narrated_playlist(event_id: int):
+    cfg = _get_match_config(event_id)
+    log.info("narrated playlist requested for event %d", event_id)
+    num_segments = await asyncio.to_thread(narrated_segmenter.get_num_segments, cfg.video_url)
+    manifest = narrated_segmenter.build_hls_manifest(num_segments)
+    log.info("narrated playlist: %d segments", num_segments)
+    return PlainTextResponse(manifest, media_type="application/vnd.apple.mpegurl")
+
+
+@router.get("/{event_id}/narrated-stream/{chunk_index}")
+async def get_narrated_segment(event_id: int, chunk_index: int):
+    cfg = _get_match_config(event_id)
+    log.info("narrated segment %d requested for event %d", chunk_index, event_id)
+    segment_path = await narrated_segmenter.generate_narrated_segment(event_id, cfg.video_url, chunk_index)
+    return FileResponse(str(segment_path), media_type="video/mp2t")

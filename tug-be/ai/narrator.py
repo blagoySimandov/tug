@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from typing import Any
 
 from pydantic import BaseModel
@@ -7,6 +8,8 @@ import bsd_past
 from ai.client import AiClient
 from ai.stt.models import TranscriptSegment
 from ai.stt.stt_client import STTClient
+
+log = logging.getLogger(__name__)
 
 
 class NarratorStyle(BaseModel):
@@ -98,14 +101,18 @@ async def generate_narration(
     stt = STTClient()
     ai = AiClient()
 
+    log.info("transcribing [%.0fs-%.0fs]", window_start, window_end)
     segments, snapshot = await asyncio.gather(
-        stt.transcribe_video_url(url),
+        stt.transcribe_video_url_window(url, window_start, window_end),
         bsd_past.get_match_snapshot(event_id),
     )
+    log.info("transcription done: %d segments", len(segments))
 
     filtered = _filter_snapshot(snapshot, window_start, window_end)
     prompt = _build_narrator_prompt(segments, filtered, style, window_start, window_end)
+    log.info("calling Gemini for narration")
     result = ai.generate_content(prompt, temperature=style.temperature)
+    log.info("Gemini narration done (%d chars)", len(result or ""))
     return result or ""
 
 
