@@ -35,8 +35,8 @@ export class Api {
   private eventToMatch(event: BsdEvent): MatchesResponse[number] {
     return {
       id: String(event.id),
-      homeTeam: { name: event.home_team, flag: "" },
-      awayTeam: { name: event.away_team, flag: "" },
+      homeTeam: { name: event.home_team, flag: "", logo: event.home_team_logo ?? "" },
+      awayTeam: { name: event.away_team, flag: "", logo: event.away_team_logo ?? "" },
       homeScore: event.home_score,
       awayScore: event.away_score,
       leagueName: event.league_name,
@@ -55,20 +55,36 @@ export class Api {
     return res.json() as Promise<EventsResponse>;
   }
 
-  public async narrateAudio(
-    eventId: number,
-    url: string,
-    windowStart: number = 0,
-    windowEnd: number = 300,
-    style?: NarratorStyle,
-  ): Promise<Blob> {
-    const endpoint = this.buildUrl(this.baseUrl, `/narrate/${eventId}/audio`);
-    const res = await fetch(endpoint, {
+  public async generateSpeech(text: string, voice: string = "Puck"): Promise<Blob> {
+    const url = this.buildUrl(this.baseUrl, "/tts");
+    const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, window_start: windowStart, window_end: windowEnd, style }),
+      body: JSON.stringify({ text, voice }),
     });
-    if (!res.ok) throw new Error(`Narrate failed: ${res.statusText}`);
+    if (!res.ok) throw new Error(`TTS failed: ${res.statusText}`);
+    return res.blob();
+  }
+
+  public async generateNarrationAudio(
+    eventId: number,
+    videoUrl: string,
+    style: NarratorStyle,
+    windowStart: number,
+    windowEnd: number,
+  ): Promise<Blob> {
+    const url = this.buildUrl(this.baseUrl, `/narrate/${eventId}/audio`);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        url: videoUrl,
+        style,
+        window_start: windowStart,
+        window_end: windowEnd,
+      }),
+    });
+    if (!res.ok) throw new Error(`Narration failed: ${res.statusText}`);
     return res.blob();
   }
 

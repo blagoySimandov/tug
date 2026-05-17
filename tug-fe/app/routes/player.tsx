@@ -1,8 +1,11 @@
-import { useSearchParams } from "react-router";
+import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import { useMatches } from "~/api/hooks";
+const logo = "/logo.png";
 import type { Match } from "~/api/types";
 import { AutoSwitch } from "~/components/autoswitch";
 import { ImportantMomentsBar } from "~/components/important-moments";
+import { NarratorPanel } from "~/components/narrator-panel";
 import { VideoLayout, type LayoutMode } from "~/components/video-layout";
 import { useVideoStore } from "~/store/video";
 
@@ -20,6 +23,8 @@ const MODES: { label: string; value: LayoutMode }[] = [
 
 export default function Player() {
   const [searchParams] = useSearchParams();
+  const [narratorOpen, setNarratorOpen] = useState(false);
+  const navigate = useNavigate();
   const mode = useVideoStore((s) => s.manualLayoutMode);
   const setMode = useVideoStore((s) => s.setManualLayoutMode);
   const { data: matches = [], isLoading } = useMatches();
@@ -31,6 +36,7 @@ export default function Player() {
   const primaryMatch = matches.find((m) => m.id === primaryId);
   const secondaryMatch = matches.find((m) => m.id === secondaryId);
 
+  const primaryTimestamp = useVideoStore((s) => s.primaryTimestamp);
   const storePrimaryId = useVideoStore((s) => s.primaryVideoId);
   const storeSecondaryId = useVideoStore((s) => s.secondaryVideoId);
   const setPrimaryVideoId = useVideoStore((s) => s.setPrimaryVideoId);
@@ -61,12 +67,19 @@ export default function Player() {
   return (
     <div className="flex h-svh flex-col bg-background">
       <header className="flex min-h-11 items-center gap-4 bg-primary px-5 py-1.5">
-        <span className="text-sm font-black tracking-tight text-accent">TUG</span>
+        <button onClick={() => navigate("/")} className="flex items-center gap-2 transition-opacity hover:opacity-80">
+          <img src={logo} alt="TUG logo" className="h-9 object-contain" />
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif" }} className="text-xl tracking-widest text-accent">TUG</span>
+        </button>
         <div className="h-5 w-px bg-primary-foreground/15" />
         <div className="flex flex-1 justify-center">
           <ImportantMomentsBar
             primaryLabel={matchLabel(primaryMatch)}
             secondaryLabel={matchLabel(secondaryMatch)}
+            primaryHomeLogo={primaryMatch.homeTeam.logo}
+            primaryAwayLogo={primaryMatch.awayTeam.logo}
+            secondaryHomeLogo={secondaryMatch?.homeTeam.logo}
+            secondaryAwayLogo={secondaryMatch?.awayTeam.logo}
           />
         </div>
         {narratorOn && (
@@ -75,6 +88,17 @@ export default function Player() {
           </span>
         )}
         <AutoSwitch />
+        <div className="h-5 w-px bg-primary-foreground/15" />
+        <button
+          onClick={() => setNarratorOpen((o) => !o)}
+          className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
+            narratorOpen
+              ? "bg-accent text-accent-foreground"
+              : "text-primary-foreground/55 hover:bg-primary-foreground/10 hover:text-primary-foreground"
+          }`}
+        >
+          Narrator
+        </button>
         <div className="h-5 w-px bg-primary-foreground/15" />
         <div className="flex overflow-hidden rounded border border-primary-foreground/15">
           {MODES.map(({ label, value }) => (
@@ -92,6 +116,14 @@ export default function Player() {
           ))}
         </div>
       </header>
+      {narratorOpen && (
+        <NarratorPanel
+          eventId={parseInt(primaryId, 10)}
+          videoUrl={primaryMatch.url}
+          windowStart={Math.max(0, primaryTimestamp - 150)}
+          windowEnd={primaryTimestamp + 150}
+        />
+      )}
       <main className="flex-1 overflow-hidden p-2">
         <VideoLayout primaryUrl={primaryUrl} secondaryUrl={secondaryMatch?.url} />
       </main>
