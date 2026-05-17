@@ -76,6 +76,10 @@ export default function Player() {
           <ImportantMomentsBar
             primaryLabel={matchLabel(primaryMatch)}
             secondaryLabel={matchLabel(secondaryMatch)}
+            primaryHomeLogo={primaryMatch.homeTeam.logo}
+            primaryAwayLogo={primaryMatch.awayTeam.logo}
+            secondaryHomeLogo={secondaryMatch?.homeTeam.logo}
+            secondaryAwayLogo={secondaryMatch?.awayTeam.logo}
           />
         </div>
         {narratorOn && (

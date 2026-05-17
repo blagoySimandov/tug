@@ -28,8 +28,8 @@ export class Api {
   private eventToMatch(event: BsdEvent): MatchesResponse[number] {
     return {
       id: String(event.id),
-      homeTeam: { name: event.home_team, flag: "" },
-      awayTeam: { name: event.away_team, flag: "" },
+      homeTeam: { name: event.home_team, flag: "", logo: event.home_team_logo ?? "" },
+      awayTeam: { name: event.away_team, flag: "", logo: event.away_team_logo ?? "" },
       homeScore: event.home_score,
       awayScore: event.away_score,
       leagueName: event.league_name,

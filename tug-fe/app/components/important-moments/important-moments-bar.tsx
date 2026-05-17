@@ -23,17 +23,21 @@ const VARIANT_STYLES = {
 
 interface MomentsRowProps {
   label: string;
+  homeLogo?: string;
+  awayLogo?: string;
   variant: "primary" | "secondary";
   moments: AnyMoment[];
   onSeek: (videoId: string, timestamp: number) => void;
 }
 
-const MomentsRow = ({ label, variant, moments, onSeek }: MomentsRowProps) => {
+const MomentsRow = ({ label, homeLogo, awayLogo, variant, moments, onSeek }: MomentsRowProps) => {
   if (moments.length === 0) return null;
   return (
     <div className="flex items-center gap-1.5">
-      <span className={`shrink-0 rounded border px-1.5 py-0.5 text-[11px] font-semibold ${VARIANT_STYLES[variant]}`}>
+      <span className={`shrink-0 flex items-center gap-1 rounded border px-1.5 py-0.5 text-[11px] font-semibold ${VARIANT_STYLES[variant]}`}>
+        {homeLogo && <img src={homeLogo} alt="" className="h-3.5 w-3.5 object-contain" />}
         {label}
+        {awayLogo && <img src={awayLogo} alt="" className="h-3.5 w-3.5 object-contain" />}
       </span>
       <div className="flex gap-1.5">
         {moments.map((m) => {
@@ -67,11 +71,19 @@ function deriveAttackMoments(goals: ImportantMoment[], currentTs: number): AnyMo
 interface ImportantMomentsBarProps {
   primaryLabel?: string;
   secondaryLabel?: string;
+  primaryHomeLogo?: string;
+  primaryAwayLogo?: string;
+  secondaryHomeLogo?: string;
+  secondaryAwayLogo?: string;
 }
 
 export const ImportantMomentsBar = ({
   primaryLabel = "Cam 1",
   secondaryLabel = "Cam 2",
+  primaryHomeLogo,
+  primaryAwayLogo,
+  secondaryHomeLogo,
+  secondaryAwayLogo,
 }: ImportantMomentsBarProps) => {
   const primaryVideoId = useVideoStore((s) => s.primaryVideoId);
   const secondaryVideoId = useVideoStore((s) => s.secondaryVideoId);
@@ -128,8 +140,8 @@ export const ImportantMomentsBar = ({
 
   return (
     <div className="flex flex-col gap-0.5">
-      <MomentsRow label={primaryLabel} variant="primary" moments={primaryVisible} onSeek={seekVideo} />
-      <MomentsRow label={secondaryLabel} variant="secondary" moments={secondaryVisible} onSeek={seekVideo} />
+      <MomentsRow label={primaryLabel} homeLogo={primaryHomeLogo} awayLogo={primaryAwayLogo} variant="primary" moments={primaryVisible} onSeek={seekVideo} />
+      <MomentsRow label={secondaryLabel} homeLogo={secondaryHomeLogo} awayLogo={secondaryAwayLogo} variant="secondary" moments={secondaryVisible} onSeek={seekVideo} />
     </div>
   );
 };

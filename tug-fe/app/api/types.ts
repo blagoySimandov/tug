@@ -9,8 +9,8 @@ export type ImportantMomentsResponse = ImportantMoment[];
 
 export type Match = {
   id: string;
-  homeTeam: { name: string; flag: string };
-  awayTeam: { name: string; flag: string };
+  homeTeam: { name: string; flag: string; logo: string };
+  awayTeam: { name: string; flag: string; logo: string };
   homeScore: number | null;
   awayScore: number | null;
   leagueName: string;
@@ -39,6 +39,8 @@ export type BsdEvent = {
   away_score: number | null;
   video_filename: string | null;
   kickoff_offset: number | null;
+  home_team_logo?: string | null;
+  away_team_logo?: string | null;
 };
 
 export const NARRATOR_VOICES = [

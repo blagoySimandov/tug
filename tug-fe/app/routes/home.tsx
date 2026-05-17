@@ -6,10 +6,13 @@ import { VideoThumbnail } from "~/components/video-thumbnail";
 import { useVideoStore } from "~/store/video";
 const logo = "/logo.png";
 
-function TeamRow({ team }: { team: { name: string; flag: string } }) {
+function TeamRow({ team }: { team: { name: string; flag: string; logo: string } }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-2xl">{team.flag}</span>
+      {team.logo
+        ? <img src={team.logo} alt={team.name} className="h-7 w-7 object-contain" />
+        : <span className="text-2xl">{team.flag}</span>
+      }
       <span className="font-semibold">{team.name}</span>
     </div>
   );

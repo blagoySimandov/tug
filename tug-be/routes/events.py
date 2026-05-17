@@ -32,6 +32,8 @@ class Match(IntEnum):
     JUVENTUS_VS_GALATASARAY = 7387
 
 
+_LOGO = "/team-logo/{}.png"
+
 @dataclass
 class MatchConfig:
     home_team: str
@@ -39,6 +41,8 @@ class MatchConfig:
     event_date: str
     video_url: str
     kickoff_offset: float  # seconds into video when kickoff occurs
+    home_team_logo: str = ""
+    away_team_logo: str = ""
 
 
 # ── Configure matches here ───────────────────────────────────────────────────
@@ -49,6 +53,8 @@ MATCHES: dict[Match, MatchConfig] = {
         event_date="2026-04-15",
         video_url="https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/2025-26_Bayern_Vs_Real_Madrid_-_15042026-1_edit.mp4?alt=media&token=43bc1090-5431-431a-bbaa-bea89f08c34f",
         kickoff_offset=0,
+        home_team_logo=_LOGO.format("BAY"),
+        away_team_logo=_LOGO.format("RMA"),
     ),
     Match.PSG_VS_CHELSEA: MatchConfig(
         home_team="Paris Saint-Germain",
@@ -56,6 +62,8 @@ MATCHES: dict[Match, MatchConfig] = {
         event_date="2026-03-11",
         video_url="https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/2025-26_Paris_Saint-Germain_Vs_Chelsea_-_11032026-1.mp4?alt=media&token=1b91a829-1ded-4599-95d9-925d0611003f",
         kickoff_offset=0,
+        home_team_logo=_LOGO.format("PSG"),
+        away_team_logo=_LOGO.format("CHE"),
     ),
     Match.ATALANTA_VS_BAYERN: MatchConfig(
         home_team="Atalanta",
@@ -63,6 +71,8 @@ MATCHES: dict[Match, MatchConfig] = {
         event_date="2026-03-10",
         video_url="https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/2025-26_Atalanta_Vs_Bayern_Munich_-_10032026-1_edit.mp4?alt=media&token=8aa301de-5a22-445b-861c-9d130f4be1a9",
         kickoff_offset=0,
+        home_team_logo=_LOGO.format("ATA"),
+        away_team_logo=_LOGO.format("BAY"),
     ),
     Match.GALATASARAY_VS_LIVERPOOL: MatchConfig(
         home_team="Galatasaray",
@@ -70,6 +80,8 @@ MATCHES: dict[Match, MatchConfig] = {
         event_date="2026-03-10",
         video_url="https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/2025-26_Galatasaray_Vs_Liverpool_-_10032026-1.mp4?alt=media&token=a2852566-7ff8-4adb-a933-ec81831bb6eb",
         kickoff_offset=0,
+        home_team_logo=_LOGO.format("GAL"),
+        away_team_logo=_LOGO.format("LIV"),
     ),
     Match.JUVENTUS_VS_GALATASARAY: MatchConfig(
         home_team="Juventus",
@@ -77,6 +89,8 @@ MATCHES: dict[Match, MatchConfig] = {
         event_date="2026-02-25",
         video_url="https://firebasestorage.googleapis.com/v0/b/tug-splitball.firebasestorage.app/o/2025-26_Juventus_Vs_Galatasaray_-_25022026-1_edit_-_1.mp4?alt=media&token=054df9f1-d8c0-4e38-97ce-22c442db6996",
         kickoff_offset=0,
+        home_team_logo=_LOGO.format("JUV"),
+        away_team_logo=_LOGO.format("GAL"),
     ),
 }
 # ─────────────────────────────────────────────────────────────────────────────
@@ -100,6 +114,8 @@ def _to_bsd_event(match: Match, cfg: MatchConfig) -> BsdEvent:
         status="finished",
         video_filename=cfg.video_url,
         kickoff_offset=cfg.kickoff_offset,
+        home_team_logo=cfg.home_team_logo or None,
+        away_team_logo=cfg.away_team_logo or None,
     )
 
 
