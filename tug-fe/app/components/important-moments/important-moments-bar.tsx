@@ -1,20 +1,84 @@
 import { useEffect, useRef } from "react";
 import { useLiveImportantMoments } from "~/api/hooks";
 import { useVideoStore } from "~/store/video";
-import { GoalChip, RedCardChip, YellowCardChip, VarDecisionChip } from "./impnt-chips";
+import type { ImportantMoment } from "~/api/types";
+import { AttackChip, GoalChip, RedCardChip, YellowCardChip, VarDecisionChip } from "./impnt-chips";
 
-const CHIP_MAP = {
+const ATTACK_LEAD_TIME_SEC = 15;
+
+type AnyMoment = ImportantMoment | (Omit<ImportantMoment, "type"> & { type: "attack" });
+
+const CHIP_MAP: Record<string, React.ComponentType<{ videoTimestamp: number }>> = {
   goal: GoalChip,
   red_card: RedCardChip,
   yellow_card: YellowCardChip,
   var_decision: VarDecisionChip,
-} as const;
+  attack: AttackChip,
+};
 
-export const ImportantMomentsBar = () => {
+const VARIANT_STYLES = {
+  primary: "border-sky-500/40 bg-sky-500/20 text-sky-200",
+  secondary: "border-violet-500/40 bg-violet-500/20 text-violet-200",
+};
+
+interface MomentsRowProps {
+  label: string;
+  variant: "primary" | "secondary";
+  moments: AnyMoment[];
+  onSeek: (videoId: string, timestamp: number) => void;
+}
+
+const MomentsRow = ({ label, variant, moments, onSeek }: MomentsRowProps) => {
+  if (moments.length === 0) return null;
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className={`shrink-0 rounded border px-1.5 py-0.5 text-[11px] font-semibold ${VARIANT_STYLES[variant]}`}>
+        {label}
+      </span>
+      <div className="flex gap-1.5">
+        {moments.map((m) => {
+          const Chip = CHIP_MAP[m.type];
+          return (
+            <button
+              key={`${m.videoId}:${m.type}:${m.videoTimestamp}`}
+              onClick={() => onSeek(m.videoId, m.videoTimestamp)}
+              className="cursor-pointer transition-opacity hover:opacity-75"
+            >
+              <Chip videoTimestamp={m.videoTimestamp} />
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+function deriveAttackMoments(goals: ImportantMoment[], currentTs: number): AnyMoment[] {
+  return goals
+    .filter((g) => currentTs >= g.videoTimestamp - ATTACK_LEAD_TIME_SEC && currentTs < g.videoTimestamp)
+    .map((g) => ({
+      ...g,
+      type: "attack" as const,
+      videoTimestamp: g.videoTimestamp - ATTACK_LEAD_TIME_SEC,
+      priorityDuration: ATTACK_LEAD_TIME_SEC,
+    }));
+}
+
+interface ImportantMomentsBarProps {
+  primaryLabel?: string;
+  secondaryLabel?: string;
+}
+
+export const ImportantMomentsBar = ({
+  primaryLabel = "Cam 1",
+  secondaryLabel = "Cam 2",
+}: ImportantMomentsBarProps) => {
   const primaryVideoId = useVideoStore((s) => s.primaryVideoId);
   const secondaryVideoId = useVideoStore((s) => s.secondaryVideoId);
   const primaryTimestamp = useVideoStore((s) => s.primaryTimestamp);
   const secondaryTimestamp = useVideoStore((s) => s.secondaryTimestamp);
+  const primaryPlaying = useVideoStore((s) => s.primaryPlaying);
+  const secondaryPlaying = useVideoStore((s) => s.secondaryPlaying);
   const autoswitchEnabled = useVideoStore((s) => s.autoswitchEnabled);
   const setFlashingVideoId = useVideoStore((s) => s.setFlashingVideoId);
   const setPriorityUntil = useVideoStore((s) => s.setPriorityUntil);
@@ -24,18 +88,32 @@ export const ImportantMomentsBar = () => {
   const { data: primaryData } = useLiveImportantMoments(primaryVideoId, 0, 999999);
   const { data: secondaryData } = useLiveImportantMoments(secondaryVideoId, 0, 999999);
 
-  const visible = [
-    ...(primaryData?.filter((m) => m.videoTimestamp <= primaryTimestamp) ?? []),
-    ...(secondaryData?.filter((m) => m.videoTimestamp <= secondaryTimestamp) ?? []),
-  ];
+  const primaryGoals = primaryData?.filter((m) => m.type === "goal") ?? [];
+  const secondaryGoals = secondaryData?.filter((m) => m.type === "goal") ?? [];
 
-  const seenRef = useRef(new Set<string>());
+  const primaryVisible: AnyMoment[] = [
+    ...(primaryData?.filter((m) => m.videoTimestamp <= primaryTimestamp) ?? []),
+    ...deriveAttackMoments(primaryGoals, primaryTimestamp),
+  ];
+  const secondaryVisible: AnyMoment[] = [
+    ...(secondaryData?.filter((m) => m.videoTimestamp <= secondaryTimestamp) ?? []),
+    ...deriveAttackMoments(secondaryGoals, secondaryTimestamp),
+  ];
+  const allVisible = [...primaryVisible, ...secondaryVisible];
+
+  const prevVisibleRef = useRef(new Set<string>());
   const timeoutsRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
-    const newMoment = visible.find((m) => !seenRef.current.has(`${m.videoId}:${m.videoTimestamp}`));
+    const currentKeys = new Set(allVisible.map((m) => `${m.videoId}:${m.type}:${m.videoTimestamp}`));
+    const newMoment = allVisible.find((m) => !prevVisibleRef.current.has(`${m.videoId}:${m.type}:${m.videoTimestamp}`));
+    prevVisibleRef.current = currentKeys;
     if (!newMoment) return;
-    seenRef.current.add(`${newMoment.videoId}:${newMoment.videoTimestamp}`);
+
+    const isPlaying =
+      (newMoment.videoId === primaryVideoId && primaryPlaying) ||
+      (newMoment.videoId === secondaryVideoId && secondaryPlaying);
+    if (!isPlaying) return;
 
     clearTimeout(timeoutsRef.current[newMoment.videoId]);
     setFlashingVideoId(newMoment.videoId);
@@ -46,18 +124,12 @@ export const ImportantMomentsBar = () => {
       if (autoswitchEnabled) clearPriority(newMoment.videoId);
       setFlashingVideoId(null);
     }, newMoment.priorityDuration * 1000);
-  }, [visible, autoswitchEnabled, setFlashingVideoId, setPriorityUntil, clearPriority]);
+  }, [allVisible, autoswitchEnabled, primaryPlaying, secondaryPlaying, primaryVideoId, secondaryVideoId, setFlashingVideoId, setPriorityUntil, clearPriority]);
 
   return (
-    <div className="flex gap-2 items-center">
-      {visible.map((m) => {
-        const Chip = CHIP_MAP[m.type];
-        return (
-          <button key={`${m.videoId}:${m.videoTimestamp}`} onClick={() => seekVideo(m.videoId, m.videoTimestamp)} className="cursor-pointer transition-opacity hover:opacity-75">
-            <Chip videoTimestamp={m.videoTimestamp} />
-          </button>
-        );
-      })}
+    <div className="flex flex-col gap-0.5">
+      <MomentsRow label={primaryLabel} variant="primary" moments={primaryVisible} onSeek={seekVideo} />
+      <MomentsRow label={secondaryLabel} variant="secondary" moments={secondaryVisible} onSeek={seekVideo} />
     </div>
   );
 };

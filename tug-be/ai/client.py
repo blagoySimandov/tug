@@ -10,6 +10,7 @@ T = TypeVar("T", bound=BaseModel)
 
 class AiClient:
     DEFAULT_MODEL = "gemini-3-flash-preview"
+    TTS_MODEL = "gemini-2.5-flash-preview-tts"
 
     AvaillableTTSVoices = Literal[
         "Puck", "Achernar", "Alnilam", "Autonoe", "Enceladus", "Rasalgethi",
@@ -61,7 +62,7 @@ class AiClient:
         return cast(T, response.parsed)
 
     def generate_speech(
-        self, prompt: str, voice_name: AvaillableTTSVoices  = "Puck", model: str = DEFAULT_MODEL
+        self, prompt: str, voice_name: AvaillableTTSVoices = "Puck", model: str = TTS_MODEL
     ) -> bytes | None:
         """Generates speech (TTS) from a prompt and returns the audio bytes."""
 
@@ -76,7 +77,7 @@ class AiClient:
                         )
                     )
                 ),
-                response_modalities=["audio"],
+                response_modalities=["AUDIO"],
                 temperature=0.7,
             ),
         )

@@ -30,6 +30,9 @@ export class Api {
       id: String(event.id),
       homeTeam: { name: event.home_team, flag: "" },
       awayTeam: { name: event.away_team, flag: "" },
+      homeScore: event.home_score,
+      awayScore: event.away_score,
+      leagueName: event.league_name,
       url: event.video_filename ?? "",
     };
   }
@@ -43,6 +46,17 @@ export class Api {
     const url = this.buildUrl(this.baseUrl, "/events/", filter);
     const res = await fetch(url);
     return res.json() as Promise<EventsResponse>;
+  }
+
+  public async generateSpeech(text: string, voice: string = "Puck"): Promise<Blob> {
+    const url = this.buildUrl(this.baseUrl, "/tts");
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text, voice }),
+    });
+    if (!res.ok) throw new Error(`TTS failed: ${res.statusText}`);
+    return res.blob();
   }
 
   public async getLiveImportantMoments(

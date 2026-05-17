@@ -1,9 +1,14 @@
 import { useSearchParams } from "react-router";
 import { useMatches } from "~/api/hooks";
+import type { Match } from "~/api/types";
 import { AutoSwitch } from "~/components/autoswitch";
 import { ImportantMomentsBar } from "~/components/important-moments";
 import { VideoLayout, type LayoutMode } from "~/components/video-layout";
 import { useVideoStore } from "~/store/video";
+
+const abbr = (name: string) => name.slice(0, 3).toUpperCase();
+const matchLabel = (match: Match | undefined) =>
+  match ? `${abbr(match.homeTeam.name)} vs ${abbr(match.awayTeam.name)}` : undefined;
 
 const MODES: { label: string; value: LayoutMode }[] = [
   { label: "Split", value: "split" },
@@ -46,11 +51,14 @@ export default function Player() {
 
   return (
     <div className="flex h-svh flex-col bg-background">
-      <header className="flex h-11 items-center gap-4 bg-primary px-5">
+      <header className="flex min-h-11 items-center gap-4 bg-primary px-5 py-1.5">
         <span className="text-sm font-black tracking-tight text-accent">TUG</span>
         <div className="h-5 w-px bg-primary-foreground/15" />
         <div className="flex flex-1 justify-center">
-          <ImportantMomentsBar />
+          <ImportantMomentsBar
+            primaryLabel={matchLabel(primaryMatch)}
+            secondaryLabel={matchLabel(secondaryMatch)}
+          />
         </div>
         <AutoSwitch />
         <div className="h-5 w-px bg-primary-foreground/15" />

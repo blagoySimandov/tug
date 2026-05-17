@@ -11,6 +11,9 @@ export type Match = {
   id: string;
   homeTeam: { name: string; flag: string };
   awayTeam: { name: string; flag: string };
+  homeScore: number | null;
+  awayScore: number | null;
+  leagueName: string;
   url: string;
 };
 export type MatchesResponse = Match[];
@@ -32,8 +35,8 @@ export type BsdEvent = {
   away_team: string;
   event_date: string;
   status: string;
-  home_score: number;
-  away_score: number;
+  home_score: number | null;
+  away_score: number | null;
   video_filename: string | null;
   kickoff_offset: number | null;
 };

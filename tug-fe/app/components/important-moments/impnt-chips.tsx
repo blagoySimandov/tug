@@ -1,4 +1,4 @@
-import { Crosshair, Square, Video } from "lucide-react";
+import { Crosshair, Flame, Square, Video } from "lucide-react";
 import { Badge } from "~/components/ui/badge";
 import { cn } from "~/lib/utils";
 
@@ -63,5 +63,14 @@ export const VarDecisionChip = ({ videoTimestamp }: { videoTimestamp: number }) 
     label="VAR"
     videoTimestamp={videoTimestamp}
     className="border-blue-400/25 bg-blue-950/80 text-blue-100 shadow-[0_0_16px_rgba(96,165,250,0.12)]"
+  />
+);
+
+export const AttackChip = ({ videoTimestamp }: { videoTimestamp: number }) => (
+  <BaseChip
+    icon={<Flame strokeWidth={2.5} />}
+    label="Attack"
+    videoTimestamp={videoTimestamp}
+    className="animate-pulse border-orange-400/25 bg-orange-950/80 text-orange-100 shadow-[0_0_16px_rgba(251,146,60,0.18)]"
   />
 );

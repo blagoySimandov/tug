@@ -1,9 +1,12 @@
+import struct
 from dotenv import load_dotenv
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+from pydantic import BaseModel
 from models import ImportantMoment, BatchMomentsRequest
 from routes.events import router as events_router, get_kickoff_offset
-from mock import MOCK_MOMENTS
+from ai.client import AiClient
 import bsd_past
 import moment_mapper
 
@@ -67,6 +70,34 @@ async def get_important_moments(
         moments = await transcribe_and_analyze(video_id, VIDEO_URLS[video_id])
 
     return [m for m in moments if start <= m.videoTimestamp <= end]
+
+class TTSRequest(BaseModel):
+    text: str
+    voice: str = "Puck"
+
+
+def pcm_to_wav(pcm: bytes, sample_rate: int = 24000, channels: int = 1, bit_depth: int = 16) -> bytes:
+    data_size = len(pcm)
+    byte_rate = sample_rate * channels * bit_depth // 8
+    block_align = channels * bit_depth // 8
+    header = struct.pack(
+        "<4sI4s4sIHHIIHH4sI",
+        b"RIFF", data_size + 36, b"WAVE",
+        b"fmt ", 16, 1, channels, sample_rate,
+        byte_rate, block_align, bit_depth,
+        b"data", data_size,
+    )
+    return header + pcm
+
+
+@app.post("/tts")
+async def generate_tts(body: TTSRequest):
+    ai = AiClient()
+    audio = ai.generate_speech(body.text, body.voice)  # type: ignore[arg-type]
+    if audio is None:
+        raise HTTPException(status_code=500, detail="TTS generation failed")
+    return Response(content=pcm_to_wav(audio), media_type="audio/wav")
+
 
 @app.post("/important-moments/batch", response_model=dict[str, list[ImportantMoment]])
 async def get_important_moments_batch(body: BatchMomentsRequest):
