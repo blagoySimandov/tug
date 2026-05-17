@@ -5,10 +5,12 @@ interface PlayerSlotProps {
   url: string;
   className?: string;
   onProgress?: (seconds: number) => void;
+  onPlay?: () => void;
+  onPause?: () => void;
 }
 
 export const PlayerSlot = forwardRef<HTMLVideoElement, PlayerSlotProps>(function PlayerSlot(
-  { url, className = "", onProgress },
+  { url, className = "", onProgress, onPlay, onPause },
   ref,
 ) {
   return (
@@ -20,6 +22,8 @@ export const PlayerSlot = forwardRef<HTMLVideoElement, PlayerSlotProps>(function
         height="100%"
         controls
         onTimeUpdate={(e) => onProgress?.(e.currentTarget.currentTime)}
+        onPlay={onPlay}
+        onPause={onPause}
       />
     </div>
   );

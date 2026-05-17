@@ -18,15 +18,15 @@ export function useMatches() {
   });
 }
 
-export function useLiveImportantMoments(
-  videoId: string,
-  timestampStart: number,
-  timestampEnd: number,
-) {
+export function useLiveImportantMoments(videoId: string, timestampStart: number, timestampEnd: number) {
   const api = useApi();
   return useQuery<ImportantMomentsResponse>({
     queryKey: ["importantMoments", videoId, timestampStart, timestampEnd],
-    queryFn: () => api.getLiveImportantMoments(videoId, timestampStart, timestampEnd),
+    queryFn: ({ signal }) => api.getLiveImportantMoments(videoId, timestampStart, timestampEnd, signal).then((data) => { console.log("important moments", data); return data; }),
     enabled: !!videoId,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 }

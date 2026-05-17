@@ -1,7 +1,7 @@
 from typing import Literal
 from pydantic import BaseModel, ConfigDict
 
-MomentType = Literal["goal", "red_card", "yellow_card", "var_decision"]
+MomentType = Literal["goal", "red_card", "yellow_card", "var_decision", "substitution", "penalty", "near_miss", "free_kick", "corner", "highlight"]
 
 _extra = ConfigDict(extra="allow")
 

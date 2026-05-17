@@ -111,7 +111,7 @@ async def generate_narration(
     filtered = _filter_snapshot(snapshot, window_start, window_end)
     prompt = _build_narrator_prompt(segments, filtered, style, window_start, window_end)
     log.info("calling Gemini for narration")
-    result = ai.generate_content(prompt, temperature=style.temperature)
+    result = await asyncio.to_thread(ai.generate_content, prompt, AiClient.DEFAULT_MODEL, style.temperature)
     log.info("Gemini narration done (%d chars)", len(result or ""))
     return result or ""
 
@@ -125,7 +125,7 @@ async def generate_narration_audio(
 ) -> bytes:
     narration = await generate_narration(event_id, url, style, window_start, window_end)
     ai = AiClient()
-    audio = ai.generate_speech(narration, voice_name=style.voice)
+    audio = await asyncio.to_thread(ai.generate_speech, narration, style.voice)
     if not audio:
         raise ValueError("TTS returned no audio")
     return audio

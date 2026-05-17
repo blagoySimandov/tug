@@ -36,3 +36,18 @@ def segment_video(video_id: str, source: str | Path) -> Path:
     )
 
     return output_dir
+
+
+def create_single_segment(video_id: str, url: str, chunk_index: int) -> Path:
+    output_dir = HLS_OUTPUT_DIR / video_id
+    output_dir.mkdir(parents=True, exist_ok=True)
+    segment_path = output_dir / f"segment_{chunk_index:03d}.ts"
+    chunk_start = chunk_index * CHUNK_DURATION_SECONDS
+    (
+        ffmpeg
+        .input(url, ss=chunk_start, t=CHUNK_DURATION_SECONDS)
+        .output(str(segment_path), format="mpegts", vcodec="copy", acodec="copy")
+        .overwrite_output()
+        .run(quiet=True)
+    )
+    return segment_path

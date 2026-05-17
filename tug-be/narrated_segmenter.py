@@ -93,7 +93,7 @@ async def generate_narrated_segment(event_id: int, url: str, chunk_index: int) -
     log.info("[segment %d] narration text (%d chars): %s", chunk_index, len(narration_text), narration_text[:120])
 
     log.info("[segment %d] TTS...", chunk_index)
-    pcm = AiClient().generate_speech(narration_text, voice_name=style.voice)
+    pcm = await asyncio.to_thread(AiClient().generate_speech, narration_text, style.voice)
     if not pcm:
         raise ValueError(f"TTS returned no audio for segment {chunk_index}")
     log.info("[segment %d] TTS done (%d bytes PCM)", chunk_index, len(pcm))

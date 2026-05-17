@@ -16,7 +16,7 @@ const primaryClasses: Record<LayoutMode, string> = {
 
 const secondaryClasses: Record<LayoutMode, string> = {
   split: "absolute inset-y-0 left-[calc(50%+1px)] right-0",
-  pip: "absolute bottom-4 right-4 z-10 w-64 aspect-video shadow-xl ring-1 ring-border rounded-lg overflow-hidden",
+  pip: "absolute bottom-4 right-4 z-10 w-64 aspect-video shadow-xl ring-2 ring-white/30 rounded-lg overflow-hidden",
 };
 
 function FlashOverlay() {
@@ -50,6 +50,8 @@ function DualVideoLayout({ primaryUrl, secondaryUrl }: { primaryUrl: string; sec
   const manualLayoutMode = useVideoStore((s) => s.manualLayoutMode);
   const setPrimarySeeker = useVideoStore((s) => s.setPrimarySeeker);
   const setSecondarySeeker = useVideoStore((s) => s.setSecondarySeeker);
+  const setPrimaryPlaying = useVideoStore((s) => s.setPrimaryPlaying);
+  const setSecondaryPlaying = useVideoStore((s) => s.setSecondaryPlaying);
 
   const primaryRef = useCallback((el: HTMLVideoElement | null) => {
     if (el) setPrimarySeeker((s) => { el.currentTime = s; el.play(); });
@@ -68,9 +70,6 @@ function DualVideoLayout({ primaryUrl, secondaryUrl }: { primaryUrl: string; sec
 
   function handlePrimaryProgress(seconds: number) {
     setPrimaryTimestamp(seconds);
-    if (Math.floor(seconds) % 5 === 0) {
-      console.log("[store] primaryTimestamp", seconds.toFixed(2));
-    }
   }
 
   return (
@@ -81,6 +80,8 @@ function DualVideoLayout({ primaryUrl, secondaryUrl }: { primaryUrl: string; sec
           url={primaryUrl}
           className="h-full w-full"
           onProgress={handlePrimaryProgress}
+          onPlay={() => setPrimaryPlaying(true)}
+          onPause={() => setPrimaryPlaying(false)}
         />
         {flashingVideoId === primaryVideoId && <FlashOverlay key={flashCount} />}
       </div>
@@ -90,6 +91,8 @@ function DualVideoLayout({ primaryUrl, secondaryUrl }: { primaryUrl: string; sec
           url={secondaryUrl}
           className="h-full w-full"
           onProgress={setSecondaryTimestamp}
+          onPlay={() => setSecondaryPlaying(true)}
+          onPause={() => setSecondaryPlaying(false)}
         />
         {flashingVideoId === secondaryVideoId && <FlashOverlay key={flashCount} />}
       </div>

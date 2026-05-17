@@ -1,4 +1,11 @@
-import type { ImportantMomentsResponse, MatchesResponse, EventsFilter, EventsResponse, BsdEvent, NarratorStyle } from "./types";
+import type {
+  ImportantMomentsResponse,
+  MatchesResponse,
+  EventsFilter,
+  EventsResponse,
+  BsdEvent,
+  NarratorStyle,
+} from "./types";
 
 export class Api {
   baseUrl: string;
@@ -48,17 +55,6 @@ export class Api {
     return res.json() as Promise<EventsResponse>;
   }
 
-  public async generateSpeech(text: string, voice: string = "Puck"): Promise<Blob> {
-    const url = this.buildUrl(this.baseUrl, "/tts");
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, voice }),
-    });
-    if (!res.ok) throw new Error(`TTS failed: ${res.statusText}`);
-    return res.blob();
-  }
-
   public async narrateAudio(
     eventId: number,
     url: string,
@@ -80,12 +76,13 @@ export class Api {
     videoId: string,
     timestampStart: number,
     timestampEnd: number,
+    signal?: AbortSignal,
   ): Promise<ImportantMomentsResponse> {
-    const url = this.buildUrl(this.baseUrl, `/${videoId}/important-moments`, {
+    const url = this.buildUrl(this.baseUrl, `/events/${videoId}/important-moments`, {
       start: timestampStart,
       end: timestampEnd,
     });
-    const res = await fetch(url);
+    const res = await fetch(url, { signal });
     if (!res.ok) throw new Error(`important-moments ${res.status}: ${videoId}`);
     return res.json() as Promise<ImportantMomentsResponse>;
   }

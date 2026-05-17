@@ -1,12 +1,25 @@
 import { useEffect, useRef } from "react";
+import { Zap } from "lucide-react";
 import { useLiveImportantMoments } from "~/api/hooks";
 import { useVideoStore } from "~/store/video";
 import type { ImportantMoment } from "~/api/types";
-import { AttackChip, GoalChip, RedCardChip, YellowCardChip, VarDecisionChip } from "./impnt-chips";
+import { AttackChip, BaseChip, CornerChip, FreeKickChip, GoalChip, HighlightChip, NearMissChip, PenaltyChip, RedCardChip, SubstitutionChip, VarDecisionChip, YellowCardChip } from "./impnt-chips";
 
 const ATTACK_LEAD_TIME_SEC = 15;
+const CHUNK_DURATION = 120;
 
-type AnyMoment = ImportantMoment | (Omit<ImportantMoment, "type"> & { type: "attack" });
+type AnyMoment = ImportantMoment | (Omit<ImportantMoment, "type"> & { type: string });
+
+function GenericChip({ videoTimestamp, label }: { videoTimestamp: number; label: string }) {
+  return (
+    <BaseChip
+      icon={<Zap strokeWidth={2.5} />}
+      label={label.replace(/_/g, " ")}
+      videoTimestamp={videoTimestamp}
+      className="border-slate-400/25 bg-slate-950/80 text-slate-200"
+    />
+  );
+}
 
 const CHIP_MAP: Record<string, React.ComponentType<{ videoTimestamp: number }>> = {
   goal: GoalChip,
@@ -14,6 +27,12 @@ const CHIP_MAP: Record<string, React.ComponentType<{ videoTimestamp: number }>> 
   yellow_card: YellowCardChip,
   var_decision: VarDecisionChip,
   attack: AttackChip,
+  substitution: SubstitutionChip,
+  penalty: PenaltyChip,
+  near_miss: NearMissChip,
+  free_kick: FreeKickChip,
+  corner: CornerChip,
+  highlight: HighlightChip,
 };
 
 const VARIANT_STYLES = {
@@ -44,7 +63,11 @@ const MomentsRow = ({ label, variant, moments, onSeek }: MomentsRowProps) => {
               onClick={() => onSeek(m.videoId, m.videoTimestamp)}
               className="cursor-pointer transition-opacity hover:opacity-75"
             >
-              <Chip videoTimestamp={m.videoTimestamp} />
+              {Chip ? (
+                <Chip videoTimestamp={m.videoTimestamp} />
+              ) : (
+                <GenericChip videoTimestamp={m.videoTimestamp} label={m.type} />
+              )}
             </button>
           );
         })}
@@ -85,8 +108,20 @@ export const ImportantMomentsBar = ({
   const clearPriority = useVideoStore((s) => s.clearPriority);
   const seekVideo = useVideoStore((s) => s.seekVideo);
 
-  const { data: primaryData } = useLiveImportantMoments(primaryVideoId, 0, 999999);
-  const { data: secondaryData } = useLiveImportantMoments(secondaryVideoId, 0, 999999);
+  const primaryChunkStart = Math.floor(primaryTimestamp / CHUNK_DURATION) * CHUNK_DURATION;
+  const secondaryChunkStart = Math.floor(secondaryTimestamp / CHUNK_DURATION) * CHUNK_DURATION;
+
+  const { data: primaryChunkData } = useLiveImportantMoments(primaryVideoId, primaryChunkStart, primaryChunkStart + CHUNK_DURATION);
+  const { data: secondaryChunkData } = useLiveImportantMoments(secondaryVideoId, secondaryChunkStart, secondaryChunkStart + CHUNK_DURATION);
+
+  const primaryAccumRef = useRef<Map<number, ImportantMoment[]>>(new Map());
+  const secondaryAccumRef = useRef<Map<number, ImportantMoment[]>>(new Map());
+
+  if (primaryChunkData) primaryAccumRef.current.set(primaryChunkStart, primaryChunkData);
+  if (secondaryChunkData) secondaryAccumRef.current.set(secondaryChunkStart, secondaryChunkData);
+
+  const primaryData = [...primaryAccumRef.current.values()].flat();
+  const secondaryData = [...secondaryAccumRef.current.values()].flat();
 
   const primaryGoals = primaryData?.filter((m) => m.type === "goal") ?? [];
   const secondaryGoals = secondaryData?.filter((m) => m.type === "goal") ?? [];
@@ -107,14 +142,18 @@ export const ImportantMomentsBar = ({
   useEffect(() => {
     const currentKeys = new Set(allVisible.map((m) => `${m.videoId}:${m.type}:${m.videoTimestamp}`));
     const newMoment = allVisible.find((m) => !prevVisibleRef.current.has(`${m.videoId}:${m.type}:${m.videoTimestamp}`));
-    prevVisibleRef.current = currentKeys;
-    if (!newMoment) return;
+
+    if (!newMoment) {
+      prevVisibleRef.current = currentKeys;
+      return;
+    }
 
     const isPlaying =
       (newMoment.videoId === primaryVideoId && primaryPlaying) ||
       (newMoment.videoId === secondaryVideoId && secondaryPlaying);
     if (!isPlaying) return;
 
+    prevVisibleRef.current = currentKeys;
     clearTimeout(timeoutsRef.current[newMoment.videoId]);
     setFlashingVideoId(newMoment.videoId);
     if (autoswitchEnabled) {
