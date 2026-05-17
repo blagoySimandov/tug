@@ -4,11 +4,15 @@ import { useMatches } from "~/api/hooks";
 import type { Match } from "~/api/types";
 import { VideoThumbnail } from "~/components/video-thumbnail";
 import { useVideoStore } from "~/store/video";
+const logo = "/logo.png";
 
-function TeamRow({ team }: { team: { name: string; flag: string } }) {
+function TeamRow({ team }: { team: { name: string; flag: string; logo: string } }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-2xl">{team.flag}</span>
+      {team.logo
+        ? <img src={team.logo} alt={team.name} className="h-7 w-7 object-contain" />
+        : <span className="text-2xl">{team.flag}</span>
+      }
       <span className="font-semibold">{team.name}</span>
     </div>
   );
@@ -26,14 +30,31 @@ function MatchCard({
   return (
     <button
       onClick={onToggle}
-      className={`flex w-64 flex-col overflow-hidden rounded-xl border-2 bg-card transition-all ${
+      className={`group flex w-96 flex-col overflow-hidden rounded-xl border-2 bg-card transition-all duration-300 ${
         selected
-          ? "border-accent shadow-lg shadow-accent/20"
-          : "border-border hover:border-primary/30"
+          ? "scale-[1.03] border-accent shadow-xl shadow-accent/30"
+          : "border-border hover:scale-[1.03] hover:border-primary/50 hover:shadow-xl hover:shadow-black/30"
       }`}
     >
-      <div className="aspect-video w-full bg-muted">
-        <VideoThumbnail url={match.url} className="h-full w-full" />
+      <div className="relative aspect-video w-full overflow-hidden bg-muted">
+        <VideoThumbnail
+          url={match.url}
+          className="h-full w-full transition-transform duration-500 group-hover:scale-110"
+        />
+        <div
+          className={`absolute inset-0 transition-all duration-300 ${
+            selected
+              ? "bg-accent/25 opacity-100"
+              : "opacity-0 group-hover:bg-gradient-to-t group-hover:from-black/50 group-hover:to-transparent group-hover:opacity-100"
+          }`}
+        />
+        {selected && (
+          <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent">
+            <svg className="h-3 w-3 text-accent-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        )}
       </div>
       <div className="flex flex-col gap-2 p-4">
         <TeamRow team={match.homeTeam} />
@@ -55,8 +76,11 @@ export default function Home() {
   function toggle(id: string) {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else if (next.size < 2) {
+        next.add(id);
+      }
       return next;
     });
   }
@@ -72,20 +96,27 @@ export default function Home() {
     navigate(`/player?${params.toString()}`);
   }
 
+  const count = selected.size;
+
   return (
     <div className="flex h-svh flex-col bg-background">
-      <header className="flex h-11 items-center gap-4 bg-primary px-5">
-        <span className="text-sm font-black tracking-tight text-accent">TUG</span>
+      <header className="relative flex h-20 items-center justify-center bg-primary px-5">
+        <div className="flex items-center gap-1">
+          <img src={logo} alt="TUG logo" className="h-12 object-contain" />
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif" }} className="text-5xl tracking-widest text-accent leading-none">TUG</span>
+        </div>
       </header>
+
       <main className="flex flex-1 flex-col items-center justify-center gap-10 p-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Select matches to watch</h1>
           <p className="mt-1 text-sm text-muted-foreground">Pick one or two</p>
         </div>
+
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading...</p>
         ) : (
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-6 lg:grid-cols-3">
             {matches.map((match) => (
               <MatchCard
                 key={match.id}
@@ -96,29 +127,34 @@ export default function Home() {
             ))}
           </div>
         )}
-        {selected.size === 1 && (
-          <button
-            onClick={() => setNarratorEnabled((v) => !v)}
-            className={`flex items-center gap-3 rounded-lg border px-5 py-2.5 text-sm font-medium transition-colors ${
-              narratorEnabled
-                ? "border-accent bg-accent/10 text-accent"
-                : "border-border text-muted-foreground hover:border-primary/30 hover:text-foreground"
-            }`}
-          >
-            <span className={`relative h-4 w-7 rounded-full transition-colors ${narratorEnabled ? "bg-accent" : "bg-muted"}`}>
-              <span className={`absolute top-0 h-4 w-4 rounded-full bg-white shadow transition-transform ${narratorEnabled ? "translate-x-3" : "translate-x-0"}`} />
-            </span>
-            Custom Narrator
-          </button>
-        )}
-        <button
-          disabled={selected.size === 0}
-          onClick={handleWatch}
-          className="rounded-lg bg-accent px-10 py-3 font-semibold text-accent-foreground transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Watch{selected.size > 0 ? ` (${selected.size})` : ""}
-        </button>
       </main>
+
+      {/* Selection tray */}
+      {count > 0 && (
+        <div className="fixed bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full bg-primary px-5 py-3 shadow-2xl shadow-black/40">
+          <span className="text-sm font-bold text-primary-foreground">
+            {count}/2 selected
+          </span>
+          {count === 1 && (
+            <button
+              onClick={() => setNarratorEnabled((v) => !v)}
+              className={`flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                narratorEnabled
+                  ? "bg-accent text-accent-foreground"
+                  : "bg-primary-foreground/15 text-primary-foreground/70 hover:bg-primary-foreground/25"
+              }`}
+            >
+              Narrator
+            </button>
+          )}
+          <button
+            onClick={handleWatch}
+            className="rounded-full bg-accent px-5 py-1.5 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-90"
+          >
+            Watch
+          </button>
+        </div>
+      )}
     </div>
   );
 }

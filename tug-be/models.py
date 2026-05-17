@@ -37,6 +37,8 @@ class BsdEvent(BaseModel):
     away_score: int | None = None
     video_filename: str | None = None
     kickoff_offset: float | None = None  # seconds into video when match kickoff occurs
+    home_team_logo: str | None = None
+    away_team_logo: str | None = None
 
 
 class EventsListResponse(BaseModel):
