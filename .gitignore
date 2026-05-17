@@ -16,3 +16,4 @@ tug-be/filtered_boosted.mp3
 tug-be/test_hls_pipeline.py
 tug-be/hls_output/
 
+.DS_Store
