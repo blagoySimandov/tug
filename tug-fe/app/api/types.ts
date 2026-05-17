@@ -41,6 +41,33 @@ export type BsdEvent = {
   kickoff_offset: number | null;
 };
 
+export const NARRATOR_VOICES = [
+  "Puck", "Achernar", "Alnilam", "Autonoe", "Enceladus", "Rasalgethi",
+  "Sadachbia", "Schedar", "Umbriel", "Zubenelgenubi",
+  "Achird", "Algenib", "Callirrhoe", "Despina", "Pulcherrima",
+  "Sulafat", "Vindemiatrix", "Zephyr",
+] as const;
+
+export type NarratorVoice = typeof NARRATOR_VOICES[number];
+
+export const NARRATOR_VIBES = [
+  { label: "Electrifying", value: "electrifying" },
+  { label: "Analytical", value: "calm and analytical" },
+  { label: "Comedic", value: "comedic and lighthearted" },
+  { label: "Poetic", value: "poetic and lyrical" },
+  { label: "Pundit", value: "opinionated pundit who isn't afraid to make bold calls" },
+] as const;
+
+export type NarratorVibe = typeof NARRATOR_VIBES[number]["value"];
+
+export type NarratorStyle = {
+  voice: NarratorVoice;
+  persona: NarratorVibe;
+  custom_instruction: string;
+  temperature?: number;
+  target_duration_seconds?: number;
+};
+
 export type EventsResponse = {
   count: number;
   next: string | null;

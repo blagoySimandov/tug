@@ -17,6 +17,7 @@ class NarratorStyle(BaseModel):
     persona: str = "electrifying"
     target_duration_seconds: int = 60
     voice: AiClient.AvaillableTTSVoices = "Puck"
+    custom_instruction: str = ""
 
 
 def _filter_snapshot(snapshot: dict[str, Any], window_start: float, window_end: float) -> dict[str, Any]:
@@ -87,7 +88,7 @@ Rules:
 - Target approximately {style.target_duration_seconds} seconds when read aloud at broadcast pace
 - Style: {style.persona} — match the energy level throughout
 - End on a strong note, not mid-sentence
-
+{f"- Viewer instruction: {style.custom_instruction}" if style.custom_instruction else ""}
 Begin the narration now:"""
 
 
