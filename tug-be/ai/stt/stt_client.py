@@ -1,3 +1,4 @@
+from pathlib import Path
 from fastapi import HTTPException
 from openai import OpenAI
 from os import environ
@@ -9,10 +10,29 @@ from io import BytesIO
 
 class STTClient:
     """Client for OpenAI's Speech-to-Text API."""
+
     def __init__(self):
         self.client = OpenAI(api_key=environ["OPENAI_API_KEY"])
 
-    async def transcribe_video_url(self,url: str) -> list[TranscriptSegment]:
+    async def transcribe_local_file(self, path: Path) -> list[TranscriptSegment]:
+        # Read the .ts segment into memory so Whisper can receive it as a file-like object
+        bytes_io = BytesIO(path.read_bytes())
+        bytes_io.name = path.name
+        converted = _convert_to_filtered_mp3(bytes_io)
+        converted.name = "audio.mp3"
+        transcript = self.client.audio.transcriptions.create(
+            model="whisper-1",
+            file=converted,
+            response_format="verbose_json",
+        )
+        if transcript.segments is None:
+            raise HTTPException(status_code=502, detail="Failed to transcribe segment")
+        return [
+            TranscriptSegment(start=s.start, end=s.end, text=s.text)
+            for s in transcript.segments
+        ]
+
+    async def transcribe_video_url(self, url: str) -> list[TranscriptSegment]:
         response = get(url)
         bytes_io = BytesIO(response.content)
         bytes_io.name = "video.mp4"
@@ -35,12 +55,12 @@ def _convert_to_filtered_mp3(input: BytesIO) -> BytesIO:
     output_buffer = BytesIO()
     with av.open(input) as in_container:
         audio = in_container.streams.audio[0]
-        graph = av.filter.Graph() # type: ignore
+        graph = av.filter.Graph()  # type: ignore
         abuffer = graph.add_abuffer(template=audio)
-        highpass = graph.add("highpass", "f=200")
-        afftdn = graph.add("afftdn", "nf=-25")
-        equalizer = graph.add("equalizer", "f=1000:width_type=o:width=2:g=4")
-        dynaudnorm = graph.add("dynaudnorm")
+        highpass = graph.add("highpass", "f=200")   # cut rumble below 200Hz
+        afftdn = graph.add("afftdn", "nf=-25")      # denoise
+        equalizer = graph.add("equalizer", "f=1000:width_type=o:width=2:g=4")  # boost speech range
+        dynaudnorm = graph.add("dynaudnorm")         # normalize volume across the clip
         abuffersink = graph.add("abuffersink")
         abuffer.link_to(highpass)
         highpass.link_to(afftdn)
@@ -50,13 +70,13 @@ def _convert_to_filtered_mp3(input: BytesIO) -> BytesIO:
         graph.configure()
         with av.open(output_buffer, "w", format="mp3") as out_container:
             out_stream = out_container.add_stream("mp3")
-            for packet in in_container.demux(audio): # type: ignore
+            for packet in in_container.demux(audio):  # type: ignore
                 for frame in packet.decode():
                     graph.push(frame)
                     while True:
                         try:
                             filtered = graph.pull()
-                        except av.error.BlockingIOError: # type: ignore
+                        except av.error.BlockingIOError:  # type: ignore
                             break
                         for out_packet in out_stream.encode(filtered):
                             out_container.mux(out_packet)
@@ -64,7 +84,7 @@ def _convert_to_filtered_mp3(input: BytesIO) -> BytesIO:
             while True:
                 try:
                     filtered = graph.pull()
-                except (av.error.BlockingIOError, av.error.EOFError): # type: ignore
+                except (av.error.BlockingIOError, av.error.EOFError):  # type: ignore
                     break
                 for out_packet in out_stream.encode(filtered):
                     out_container.mux(out_packet)
